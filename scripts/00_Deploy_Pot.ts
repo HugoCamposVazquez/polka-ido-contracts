@@ -3,10 +3,11 @@ import {DeployFunction} from "hardhat-deploy/types";
 
 const deployFunc: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
-  const Pot = await hre.ethers.getContractFactory("POT");
-  const pot = await Pot.deploy(1000);
+  const {deployments, getNamedAccounts} = hre;
+  const {deploy} = deployments;
+  const {deployer} = await getNamedAccounts();
 
-  await pot.deployed();
+  await deploy("POT", {from: deployer, args: [1000]});
 }
 export default deployFunc;
 
