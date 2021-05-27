@@ -17,6 +17,7 @@ So called swap contract which is actually a pool/project investment contract whe
 - type (public/private)
 - total deposits
 - total deposit per user
+- vesting contract address
 
 ## Write functions
 
@@ -38,6 +39,7 @@ Should call the vesting contract (which is TBD) to transfer all available tokens
 ### setTokenAddress(address)
 ### setType(uint8)
 ### setSwapPrice(uint)
+### setVestingContract(address)
 
 
 ## Read function
