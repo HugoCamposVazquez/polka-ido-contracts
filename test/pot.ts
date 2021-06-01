@@ -1,4 +1,3 @@
-import {Deployment} from "hardhat-deploy/types";
 import {expect} from "chai";
 import { ethers, deployments } from "hardhat";
 
