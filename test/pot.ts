@@ -2,8 +2,6 @@ import {Deployment} from "hardhat-deploy/types";
 import {expect} from "chai";
 import { ethers, deployments } from "hardhat";
 import { POT } from "../typechain/POT";
-import { Signer } from "ethers";
-
 
 describe("Pot", function () {
   let POT: Deployment;
@@ -39,6 +37,4 @@ describe("Pot", function () {
     expect(ownerBalance.toNumber()).to.equal(900);
     expect(totalSupply.toNumber()).to.equal(900);
   });
-
-
 });
