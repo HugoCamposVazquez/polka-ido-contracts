@@ -96,7 +96,7 @@ describe("SwapContract", function () {
       to: swap.address,
       value: ethers.utils.parseEther("3"),
     })
-    ).to.be.rejectedWith("Error: VM Exception while processing transaction: revert Not enough tokens to sell");  
+    ).to.be.rejectedWith("VM Exception while processing transaction: revert Not enough tokens to sell");  
   });
 
   it("Should fail if you reached the token limit", async function() {
@@ -116,7 +116,7 @@ describe("SwapContract", function () {
       to: swap.address,
       value: ethers.utils.parseEther("3"),
     })
-    ).to.be.rejectedWith("Error: VM Exception while processing transaction: revert You reached the token limit");
+    ).to.be.rejectedWith("VM Exception while processing transaction: revert You reached the token limit");
   });
 
   it("Should fail if user address is not whitelisted", async function() {
@@ -131,7 +131,7 @@ describe("SwapContract", function () {
       to: swap.address,
       value: ethers.utils.parseEther("3"),
     })
-    ).to.be.rejectedWith("Error: VM Exception while processing transaction: revert Your address is not whitelisted");
+    ).to.be.rejectedWith("VM Exception while processing transaction: revert Your address is not whitelisted");
   });
 
   it("Should successfully buy tokens", async function() {
@@ -178,7 +178,7 @@ describe("SwapContract", function () {
         to: swap.address,
         value: ethers.utils.parseEther("2"),
       })
-      ).to.be.rejectedWith("Error: VM Exception while processing transaction: revert Your address is not whitelisted");
+      ).to.be.rejectedWith("VM Exception while processing transaction: revert Your address is not whitelisted");
 
       // try to purchase the tokens with user that was never added to the whitelist
       await expect(
@@ -186,7 +186,7 @@ describe("SwapContract", function () {
         to: swap.address,
         value: ethers.utils.parseEther("2"),
       })
-      ).to.be.rejectedWith("Error: VM Exception while processing transaction: revert Your address is not whitelisted");
+      ).to.be.rejectedWith("VM Exception while processing transaction: revert Your address is not whitelisted");
 
       // set the pool to whitelist: false
       await swap.setWhitelisting(false);
@@ -208,7 +208,7 @@ describe("SwapContract", function () {
     const swap = await Swap.deploy(startDate, endDate, 2, 5, 10, 100, POT.address, false, 1000, POT.address);
     
     await expect(swap.setTimeDates(startDate, endDate))
-    .to.be.rejectedWith("Error: VM Exception while processing transaction: revert The pool is already active");
+    .to.be.rejectedWith("VM Exception while processing transaction: revert The pool is already active");
   });
 
   it("Should successfully update startTime/endTime of the pool", async function() {
@@ -280,7 +280,7 @@ describe("SwapContract", function () {
     await expect(
       swap.setTokenAddress(newAdd)
     )
-    .to.be.rejectedWith("Error: VM Exception while processing transaction: revert The pool is already active");
+    .to.be.rejectedWith("VM Exception while processing transaction: revert The pool is already active");
   });
 
   it("Should successfully change swap price", async function() {
@@ -306,7 +306,7 @@ describe("SwapContract", function () {
     const swap = await Swap.deploy(startDate, endDate, 2, 5, 10, 100, POT.address, false, 1000, POT.address);
 
     await expect(swap.setSwapPrice(500))
-    .to.be.rejectedWith("Error: VM Exception while processing transaction: revert The pool is already active");
+    .to.be.rejectedWith("VM Exception while processing transaction: revert The pool is already active");
   });
 
   it("Should successfully change vesting contract address", async function() {
