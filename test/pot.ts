@@ -10,7 +10,6 @@ describe("Pot", function () {
   before(async () => {
     const [owner] = await ethers.getSigners();
     ({ POT } = await deployments.fixture());  
-    console.log(POT.address)
     potToken = (await ethers.getContractAt(
       POT.abi,
       POT.address,
