@@ -269,19 +269,6 @@ describe("SwapContract", function () {
     .to.be.rejectedWith("VM Exception while processing transaction: revert The pool is already active");
   });
 
-  it("Should successfully change vesting contract address", async function() {
-    const swap = await deploySwapContract(5, 10, ethers.utils.parseEther("10"), false, ethers.utils.parseEther("1000"));
-
-    let vestingAdd = await swap.vestingContract();
-
-    expect(vestingAdd).to.equal(POT.address);
-    const newAdd = await signers[3].getAddress();
-
-    await swap.setVestingContract(newAdd);
-    vestingAdd = await swap.vestingContract();
-    expect(vestingAdd).to.equal(newAdd);
-  });
-
   it("Should revert when trying to update tokenAddress if pool already active", async function() {
     const date = new Date();
     const startDate = Math.round((date.setDate((date.getDate() - 5)) /1000));
@@ -332,12 +319,6 @@ describe("SwapContract", function () {
 
     await expect(
       swapContract.setSwapPrice(10)
-    ).to.be.rejectedWith(
-      "VM Exception while processing transaction: revert Ownable: caller is not the owner"
-    );
-
-    await expect(
-      swapContract.setVestingContract(await signers[2].getAddress())
     ).to.be.rejectedWith(
       "VM Exception while processing transaction: revert Ownable: caller is not the owner"
     );

@@ -19,7 +19,6 @@ contract SwapContract is Ownable, Whitelisted{
     uint public totalDepositPerUser;
     uint public currentDeposit;
     mapping (address => uint) private _userDeposits;
-    address public vestingContract;
 
     constructor(    
     uint64 _startTime,
@@ -30,8 +29,7 @@ contract SwapContract is Ownable, Whitelisted{
     uint _swapPrice,
     IERC20 _token,
     bool _whitelist,
-    uint _totalDepositPerUser,
-    address _vestingContract
+    uint _totalDepositPerUser
     )
     {
         token = _token;
@@ -43,7 +41,6 @@ contract SwapContract is Ownable, Whitelisted{
         whitelist = _whitelist;
         totalDeposits = _totalDeposit;
         totalDepositPerUser = _totalDepositPerUser;
-        vestingContract = _vestingContract;
     }
 
     /// @dev We are tracking how much eth(in wei) each address has deposited
@@ -109,12 +106,6 @@ contract SwapContract is Ownable, Whitelisted{
     function setSwapPrice(uint price)external onlyOwner{
         require(startTime > block.timestamp, "The pool is already active");
         swapPrice = price;
-    }
-
-    /// @param vestingAdd -
-    function setVestingContract(address vestingAdd)external onlyOwner{ 
-        require(startTime > block.timestamp, "The pool is already active");
-        vestingContract = vestingAdd;
     }
 
     // Read functions
