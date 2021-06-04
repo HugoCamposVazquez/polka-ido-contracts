@@ -17,7 +17,7 @@ describe("SwapContract", function () {
     let startDate = Math.round((date.setDate((date.getDate() + start)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() + end)) /1000));
     return await Swap.deploy(startDate, endDate, ethers.utils.parseEther("2"), 
-    ethers.utils.parseEther("5"), totalDeposit, 100, POT.address, whitelist, totalDepositPerUser, POT.address);
+    ethers.utils.parseEther("5"), totalDeposit, 100, POT.address, whitelist, totalDepositPerUser);
   }
 
   before(async () => {
@@ -191,7 +191,7 @@ describe("SwapContract", function () {
     const endDate = Math.round((date.setDate((date.getDate() +2)) /1000));
 
     const swap = await Swap.deploy(startDate, endDate, 2, 5, ethers.utils.parseEther("10"), 
-    100, POT.address, false, ethers.utils.parseEther("1000"), POT.address);
+    100, POT.address, false, ethers.utils.parseEther("1000"));
 
     let startTimeValue = await swap.startTime()
     startTimeValue = startTimeValue.toNumber()
@@ -274,7 +274,7 @@ describe("SwapContract", function () {
     const startDate = Math.round((date.setDate((date.getDate() - 5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() + 10)) /1000));
 
-    const swap = await Swap.deploy(startDate, endDate, 2, 5, 10, 100, POT.address, false, 1000, POT.address);
+    const swap = await Swap.deploy(startDate, endDate, 2, 5, 10, 100, POT.address, false, 1000);
 
     const swapContract = (await ethers.getContractAt(
       "SwapContract",
