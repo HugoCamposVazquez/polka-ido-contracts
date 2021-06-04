@@ -57,7 +57,7 @@ contract SwapContract is Ownable{
         require(msg.value >= minSwapAmount && msg.value <= maxSwapAmount, "Not enough ether sent");
         require(currentTime <= endTime && currentTime >= startTime, "The pool is not active");
         require(currentDeposit.add(msg.value) <= totalDeposits, "Not enough tokens to sell");
-        require(currUserDeposit.add(msg.value) <= totalDepositPerUser, "You reached the token limit");
+        require(currUserDeposit.add(msg.value) <= totalDepositPerUser, "Total deposit limit reached");
 
         if (whitelist) {
             require(whitelistedUsers[msg.sender] == true, "Your address is not whitelisted");
