@@ -34,10 +34,10 @@ describe("Swap Factory", function () {
     const startDate = Math.round((date.setDate((date.getDate() -5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
     
-    await SwapFactoryOwner.createSwapContract(startDate, endDate, 2, 10, 10000, 100, POT.address, false, 1000, POT.address);
-    const res = await SwapFactoryOwner.getSwapContracts();
-    expect(res.length).to.equal(1);
-    expect(await ethers.utils.getAddress(res[0])).to.equal(res[0]);
+    const tx = await SwapFactoryOwner.createSwapContract(startDate, endDate, 2, 10, 10000, 100, POT.address, false, 1000, POT.address);
+    
+    const txReceipt = await tx.wait(1);
+    expect(txReceipt.events![1].event).to.equal("SavePool");
   });
 
   it("Should fail if createSwapContract is called with invalid owner", async function () {

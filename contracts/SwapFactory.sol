@@ -5,7 +5,7 @@ import "./SwapContract.sol";
 
 contract SwapFactory is Ownable{
 
-    SwapContract[] public contracts;
+    event SavePool(SwapContract pool);
 
     function createSwapContract(
     uint _startTime,
@@ -18,7 +18,7 @@ contract SwapFactory is Ownable{
     bool _whitelist,
     uint _totalDepositPerUser,
     address _vestingContract
-    ) public onlyOwner returns(SwapContract){
+    ) public onlyOwner {
 
         SwapContract s = new SwapContract(
             _startTime,
@@ -33,11 +33,6 @@ contract SwapFactory is Ownable{
             _vestingContract
             );
 
-            contracts.push(s);
-            return s;
-    }
-
-    function getSwapContracts() public view returns (SwapContract[] memory){
-        return contracts;
+        emit SavePool(s);
     }
 }
