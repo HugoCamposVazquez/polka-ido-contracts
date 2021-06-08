@@ -46,17 +46,18 @@ contract SwapContract is Ownable, Whitelisted{
     /// @dev We are tracking how much eth(in wei) each address has deposited
     receive() external payable {
         // calculate how much ether the sender has already deposit
+        uint userDeposit = _userDeposits[msg.sender];
         require(msg.value >= minSwapAmount && msg.value <= maxSwapAmount, "Invalid deposit amount");
         require(block.timestamp <= endTime && block.timestamp >= startTime, "The pool is not active");
         require(currentDeposit.add(msg.value) <= totalDeposits, "Not enough tokens to sell");
-        require(_userDeposits[msg.sender].add(msg.value) <= totalDepositPerUser, "You reached the token limit");
+        require(userDeposit.add(msg.value) <= totalDepositPerUser, "You reached the token limit");
 
         if (whitelist) {
-            require(list[msg.sender] == true, "Your address is not whitelisted");
+            require(whitelisted[msg.sender] == true, "Your address is not whitelisted");
         }
 
         currentDeposit = currentDeposit.add(msg.value);
-        _userDeposits[msg.sender] = _userDeposits[msg.sender].add(msg.value);
+        _userDeposits[msg.sender] = userDeposit.add(msg.value);
     }
 
     // Admin functions
@@ -64,18 +65,6 @@ contract SwapContract is Ownable, Whitelisted{
     /// @param isWhitelistable if set to true, only privileged(whitelisted) users can buy tokens
     function setWhitelisting(bool isWhitelistable) external onlyOwner {
         whitelist = isWhitelistable;
-    }
-
-    /// @dev This function uses function from parent class (Whitelisted)
-    /// @param add user address that will be whitelisted
-    function addToWhitelist(address[] memory add)external onlyOwner{
-        addUserTowhitelist(add);
-    }
-
-    /// @dev This function uses function from parent class (Whitelisted)
-    /// @param add removes user address from whitelisted addresses
-    function removeFromWhitelist(address add)external onlyOwner{
-        deleteFromWhitelist(add);
     }
 
     /// @dev admin user is not alowed to update start and end date when the pool is already active
@@ -110,16 +99,10 @@ contract SwapContract is Ownable, Whitelisted{
 
     // Read functions
 
-    /// @param user The user address
-    /// @return true if the provided user address is whitelisted, otherwise false
-    function isUserWhitelisted(address user) view external returns(bool){
-        return isWhitelisted(user);
-    }
-
     /// @dev deviding user deposit(in wei) by 1 eth becouse swapPrice is number of tokens that user can buy for 1eth
     /// @param user The user address
     /// @return How much project token has the user bought
-    function getUserUnclaimedAmount(address user) view external returns(uint) {
+    function getUserTotalTokens(address user) view external returns(uint) {
         return _userDeposits[user].div(1 ether).mul(swapPrice);
     }
 }
