@@ -126,7 +126,7 @@ describe("SwapContract", function () {
     to: swap.address,
     value: ethers.utils.parseEther("3")});
 
-    let userBalance = await swap.getUserUnclaimedAmount(signers[0].getAddress());
+    let userBalance = await swap.getUserTotalTokens(signers[0].getAddress());
     userBalance = userBalance.toString();
     expect(userBalance).to.equal("300");
   });
@@ -142,7 +142,7 @@ describe("SwapContract", function () {
       to: swap.address,
       value: ethers.utils.parseEther("3")});
   
-      let userBalance = await swap.getUserUnclaimedAmount(signers[5].getAddress());
+      let userBalance = await swap.getUserTotalTokens(signers[5].getAddress());
       userBalance = userBalance.toString();
       expect(userBalance).to.equal("300");
     
@@ -170,7 +170,7 @@ describe("SwapContract", function () {
         to: swap.address,
         value: ethers.utils.parseEther("2")});
     
-        let user0Balance = await swap.getUserUnclaimedAmount(signers[0].getAddress());
+        let user0Balance = await swap.getUserTotalTokens(signers[0].getAddress());
         user0Balance = user0Balance.toString();
         expect(user0Balance).to.equal("200");
     });
