@@ -57,7 +57,7 @@ const config: HardhatUserConfig = {
         mnemonic: `${process.env.MAINNET_MNEMONIC}`
       }
     },
-    moonbase: {
+    moonbaseAlpha: {
       url: `https://rpc.testnet.moonbeam.network`,
       chainId: 1287,
       accounts: {
