@@ -31,6 +31,7 @@
     "deploy:local": "concurrently --raw --kill-others --success first \"hardhat node\" \"yarn deploy:localhost\"",
     "deploy:goerli": "hardhat deploy --network goerli",
     "deploy:local:moonbeam": "hardhat deploy --network moonbaseDev",
+    "deploy:alpha:moonbeam": "hardhat deploy --network moonbaseAlpha",
     "help": "npx hardhat help",
     "node:local": "npx hardhat node",
     "script": "hardhat run",
