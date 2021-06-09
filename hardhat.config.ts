@@ -56,6 +56,16 @@ const config: HardhatUserConfig = {
       accounts: {
         mnemonic: `${process.env.MAINNET_MNEMONIC}`
       }
+    },
+    moonbase: {
+      url: `https://rpc.testnet.moonbeam.network`,
+      chainId: 1287,
+      accounts: [`${process.env.MOONBEAM_PRIVATE_KEY}`]
+    },
+    moonbaseDev: {
+      url: 'http://127.0.0.1:9933',
+      chainId: 1281,
+      accounts: [`${process.env.MOONBEAM_PRIVATE_KEY}`]
     }
   },
   gasReporter: {
