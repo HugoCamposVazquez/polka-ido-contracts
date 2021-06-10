@@ -1,5 +1,5 @@
-import {Deployment} from "hardhat-deploy/types";
 import {expect} from "chai";
+import {Deployment} from "hardhat-deploy/types";
 import { ethers, deployments } from "hardhat";
 import { POT } from "../typechain/POT";
 
