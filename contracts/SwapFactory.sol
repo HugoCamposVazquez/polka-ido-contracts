@@ -8,16 +8,15 @@ contract SwapFactory is Ownable{
     event SavePool(SwapContract pool);
 
     function createSwapContract(
-    uint _startTime,
-    uint _endTime,
+    uint64 _startTime,
+    uint64 _endTime,
     uint _minSwapAmount,
     uint _maxSwapAmount,
     uint _totalDeposit,
     uint _swapPrice,
     IERC20 _token,
     bool _whitelist,
-    uint _totalDepositPerUser,
-    address _vestingContract
+    uint _totalDepositPerUser
     ) public onlyOwner {
 
         SwapContract s = new SwapContract(
@@ -29,8 +28,7 @@ contract SwapFactory is Ownable{
             _swapPrice,
             _token,
             _whitelist,
-            _totalDepositPerUser,
-            _vestingContract
+            _totalDepositPerUser
             );
 
         emit SavePool(s);

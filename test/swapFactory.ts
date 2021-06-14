@@ -34,7 +34,7 @@ describe("Swap Factory", function () {
     const startDate = Math.round((date.setDate((date.getDate() -5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
     
-    const tx = await SwapFactoryOwner.createSwapContract(startDate, endDate, 2, 10, 10000, 100, POT.address, false, 1000, POT.address);
+    const tx = await SwapFactoryOwner.createSwapContract(startDate, endDate, 2, 10, 10000, 100, POT.address, false, 1000);
     
     const txReceipt = await tx.wait(1);
     expect(txReceipt.events![1].event).to.equal("SavePool");
@@ -47,7 +47,7 @@ describe("Swap Factory", function () {
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
 
     await expect(
-        swapFactory.createSwapContract(startDate, endDate, 2, 10, 10000, 100, POT.address, false, 1000, POT.address)
+        swapFactory.createSwapContract(startDate, endDate, 2, 10, 10000, 100, POT.address, false, 1000)
       ).to.be.rejectedWith(
         "VM Exception while processing transaction: revert Ownable: caller is not the owner"
       );
