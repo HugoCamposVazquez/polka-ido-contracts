@@ -1,127 +1,108 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.1;
-import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
+import "./Whitelisted.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-contract SwapContract is Ownable{
+contract SwapContract is Ownable, Whitelisted{
     using SafeMath for uint;
 
-    uint startTime;
-    uint endTime;
-    uint minSwapAmount;
-    uint maxSwapAmount;
-    uint swapPrice;
-    IERC20 token;
-    bool whitelist;
-    uint totalDeposits;
-    uint totalDepositPerUser;
-    address vestingContract;
-    uint currentDeposit;
-    mapping (address => bool) private whitelistedUsers;
-    mapping (address => uint) private _balances;
-
+    uint64 public startTime;
+    uint64 public endTime;
+    bool public whitelist;
+    IERC20 public token;
+    uint  public minSwapAmount;
+    uint public maxSwapAmount;
+    uint public swapPrice;
+    uint public totalDeposits;
+    uint public totalDepositPerUser;
+    uint public currentDeposit;
+    mapping (address => uint) private _userDeposits;
 
     constructor(    
-    uint _startTime,
-    uint _endTime,
+    uint64 _startTime,
+    uint64 _endTime,
     uint _minSwapAmount,
     uint _maxSwapAmount,
     uint _totalDeposit,
     uint _swapPrice,
     IERC20 _token,
     bool _whitelist,
-    uint _totalDepositPerUser,
-    address _vestingContract
+    uint _totalDepositPerUser
     )
     {
         token = _token;
         startTime = _startTime;
         endTime = _endTime;
-        minSwapAmount = _minSwapAmount * 1 ether;
-        maxSwapAmount = _maxSwapAmount * 1 ether;
+        minSwapAmount = _minSwapAmount;
+        maxSwapAmount = _maxSwapAmount;
         swapPrice = _swapPrice;
         whitelist = _whitelist;
-        totalDeposits = _totalDeposit * 1 ether;
-        totalDepositPerUser = _totalDepositPerUser * 1 ether;
-        vestingContract = _vestingContract;
+        totalDeposits = _totalDeposit;
+        totalDepositPerUser = _totalDepositPerUser;
     }
 
+    /// @dev We are tracking how much eth(in wei) each address has deposited
     receive() external payable {
-        uint tokenAmount = msg.value.div(1 ether).mul(swapPrice);
-        uint currentTime = block.timestamp;
         // calculate how much ether the sender has already deposit
-        uint currUserDeposit = _balances[msg.sender].div(swapPrice) * 1 ether;
-        require(msg.value >= minSwapAmount && msg.value <= maxSwapAmount, "Not enough ether sent");
-        require(currentTime <= endTime && currentTime >= startTime, "The pool is not active");
+        uint userDeposit = _userDeposits[msg.sender];
+        require(msg.value >= minSwapAmount && msg.value <= maxSwapAmount, "Invalid deposit amount");
+        require(block.timestamp <= endTime && block.timestamp >= startTime, "The pool is not active");
         require(currentDeposit.add(msg.value) <= totalDeposits, "Not enough tokens to sell");
-        require(currUserDeposit.add(msg.value) <= totalDepositPerUser, "You reached the token limit");
+        require(userDeposit.add(msg.value) <= totalDepositPerUser, "You reached the token limit");
 
         if (whitelist) {
-            require(whitelistedUsers[msg.sender] == true, "Your address is not whitelisted");
+            require(whitelisted[msg.sender] == true, "Your address is not whitelisted");
         }
 
         currentDeposit = currentDeposit.add(msg.value);
-        _balances[msg.sender] = tokenAmount;
+        _userDeposits[msg.sender] = userDeposit.add(msg.value);
     }
 
+    // Admin functions
 
-function claimTokens() external {}
-
-// Admin functions
-function setWhitelisting(bool isWhitelistable) external onlyOwner {
-    whitelist = isWhitelistable;
-}
-
-
-function addToWhitelist(address[] memory add)external onlyOwner{
-    for (uint i = 0; i< add.length; i++) {
-        whitelistedUsers[add[i]] = true;
+    /// @param isWhitelistable if set to true, only privileged(whitelisted) users can buy tokens
+    function setWhitelisting(bool isWhitelistable) external onlyOwner {
+        whitelist = isWhitelistable;
     }
-}
 
-function removeFromWhitelist(address add)external onlyOwner{
-   delete whitelistedUsers[add];
-}
+    /// @dev admin user is not alowed to update start and end date when the pool is already active
+    /// @param start unix timestamp when the token sale for the project starts
+    /// @param end unix timestamp when the token sale for the project ends
+    function setTimeDates(uint64 start, uint64 end)external onlyOwner{
+        require(startTime > block.timestamp, "The pool is already active");
+        startTime = start;
+        endTime = end;
+    }
 
+    /// @param minAmount minimal amount (in wei) of eth for which user can buy the project tokens
+    /// @param maxAmount maximal amount(in wei) of eth for which user can buy the project tokens
+    function setLimits( uint minAmount, uint maxAmount)external onlyOwner{
+        minSwapAmount = minAmount;
+        maxSwapAmount = maxAmount;
+    }
 
-function setTimeDates(uint start, uint end)external onlyOwner{
-    require(startTime > block.timestamp, "The pool is already active");
-    startTime = start;
-    endTime = end;
-}
+    /// @dev admin user is not allowed to update the token address after the token sale is already active
+    /// @param tokenAdd The address of the project's ERC20 token
+    function setTokenAddress(IERC20 tokenAdd)external onlyOwner{
+        require(startTime > block.timestamp, "The pool is already active");
+        token = tokenAdd;
+    }
 
+    /// @dev admin user is not allowed to update the token price after the token sale is already active
+    /// @param price how much project tokens can user purchase for 1 ETH
+    function setSwapPrice(uint price)external onlyOwner{
+        require(startTime > block.timestamp, "The pool is already active");
+        swapPrice = price;
+    }
 
-function setLimits( uint minAmount, uint maxAmount)external onlyOwner{
-    minSwapAmount = minAmount * 1 ether;
-    maxSwapAmount = maxAmount * 1 ether;
-}
+    // Read functions
 
-
-function setTokenAddress(IERC20 tokenAdd)external onlyOwner{
-    require(startTime > block.timestamp, "The pool is already active");
-    token = tokenAdd;
-}
-
-function setSwapPrice(uint price)external onlyOwner{
-    require(startTime > block.timestamp, "The pool is already active");
-    swapPrice = price;
-}
-
-
-function setVestingContract(address vestingAdd)external onlyOwner{ 
-    require(startTime > block.timestamp, "The pool is already active");
-    vestingContract = vestingAdd;
-}
-
-// Read functions
-function isUserWhitelisted(address user) view external returns(bool){
-    return whitelistedUsers[user];
-}
-
-function getUserUnclaimedAmount(address user) view external returns(uint) {
-    return _balances[user];
-}
+    /// @dev deviding user deposit(in wei) by 1 eth becouse swapPrice is number of tokens that user can buy for 1eth
+    /// @param user The user address
+    /// @return How much project token has the user bought
+    function getUserTotalTokens(address user) view external returns(uint) {
+        return _userDeposits[user].div(1 ether).mul(swapPrice);
+    }
 }
