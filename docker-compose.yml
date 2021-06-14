@@ -2,6 +2,6 @@ version: "3.4"
 services:
     moonbeamNode:
         image: purestake/moonbeam:tutorial-v7
-        command: --dev
-        network_mode: host
-
+        command: --dev --ws-external --rpc-external
+        ports:
+            - 9944:9944
