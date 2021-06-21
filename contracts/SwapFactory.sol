@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.1;
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./SwapContract.sol";
 
 contract SwapFactory is Ownable{
@@ -14,7 +13,7 @@ contract SwapFactory is Ownable{
     uint _maxSwapAmount,
     uint _totalDeposit,
     uint _swapPrice,
-    IERC20 _token,
+    address _token,
     bool _whitelist,
     uint _totalDepositPerUser
     ) public onlyOwner {

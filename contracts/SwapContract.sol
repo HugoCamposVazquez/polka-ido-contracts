@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.1;
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./Whitelisted.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
@@ -11,7 +10,7 @@ contract SwapContract is Ownable, Whitelisted{
     uint64 public startTime;
     uint64 public endTime;
     bool public whitelist;
-    IERC20 public token;
+    address public token;
     uint  public minSwapAmount;
     uint public maxSwapAmount;
     uint public swapPrice;
@@ -27,7 +26,7 @@ contract SwapContract is Ownable, Whitelisted{
     uint _maxSwapAmount,
     uint _totalDeposit,
     uint _swapPrice,
-    IERC20 _token,
+    address _token,
     bool _whitelist,
     uint _totalDepositPerUser
     )
@@ -85,7 +84,7 @@ contract SwapContract is Ownable, Whitelisted{
 
     /// @dev admin user is not allowed to update the token address after the token sale is already active
     /// @param tokenAdd The address of the project's ERC20 token
-    function setTokenAddress(IERC20 tokenAdd)external onlyOwner{
+    function setTokenAddress(address tokenAdd)external onlyOwner{
         require(startTime > block.timestamp, "The pool is already active");
         token = tokenAdd;
     }

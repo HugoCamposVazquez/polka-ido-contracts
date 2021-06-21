@@ -1,0 +1,155 @@
+ISPRAVNO
+"signAndSend":"status"::{
+   "dispatchInfo":{
+      "weight":100002000,
+      "class":"Normal",
+      "paysFee":"Yes"
+   },
+   "events":[
+      {
+         "phase":{
+            "applyExtrinsic":2
+         },
+         "event":{
+            "index":"0x1200",
+            "data":[
+               {
+                  "complete":2000
+               }
+            ]
+         },
+         "topics":[
+            
+         ]
+      },
+      {
+         "phase":{
+            "applyExtrinsic":2
+         },
+         "event":{
+            "index":"0x0604",
+            "data":[
+               "5EYCAe5cKPAoFh2HnQQvpKqRYZGqBpaA87u4Zzw89qPE58is",
+               1754612529
+            ]
+         },
+         "topics":[
+            
+         ]
+      },
+      {
+         "phase":{
+            "applyExtrinsic":2
+         },
+         "event":{
+            "index":"0x0000",
+            "data":[
+               {
+                  "weight":100002000,
+                  "class":"Normal",
+                  "paysFee":"Yes"
+               }
+            ]
+         },
+         "topics":[
+            
+         ]
+      }
+   ],
+   "status":{
+      "inBlock":"0x9044b8a303076086b2e35b42f81ad40fcdce1e6c77137f950047e009f96e761e"
+   }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NEISPRAVNO
+"signAndSend":"status"::{
+   "dispatchInfo":{
+      "weight":100002000,
+      "class":"Normal",
+      "paysFee":"Yes"
+   },
+   "events":[
+      {
+         "phase":{
+            "applyExtrinsic":2
+         },
+         "event":{
+            "index":"0x1200",
+            "data":[
+               {
+                  "complete":2000
+               }
+            ]
+         },
+         "topics":[
+            
+         ]
+      },
+      {
+         "phase":{
+            "applyExtrinsic":2
+         },
+         "event":{
+            "index":"0x0604",
+            "data":[
+               "5EYCAe5cKPAoFh2HnQQvpKqRYZGqBpaA87u4Zzw89qPE58is",
+               1744600072
+            ]
+         },
+         "topics":[
+            
+         ]
+      },
+      {
+         "phase":{
+            "applyExtrinsic":2
+         },
+         "event":{
+            "index":"0x0000",
+            "data":[
+               {
+                  "weight":100002000,
+                  "class":"Normal",
+                  "paysFee":"Yes"
+               }
+            ]
+         },
+         "topics":[
+            
+         ]
+      }
+   ],
+   "status":{
+      "inBlock":"0x5e2b9c66cd71d677c59b53d6abf744ef4622f3cb91793b9488bbb58a851967ad"
+   }
+}
