@@ -10,8 +10,3 @@ const deployFunc: DeployFunction = async function (hre: HardhatRuntimeEnvironmen
   await deploy("SwapFactory", {from: deployer, args: []});
 }
 export default deployFunc;
-
-// skip running this deployment script if deploying to mainnet - other/more networks are supported
-deployFunc.skip = async (hre: HardhatRuntimeEnvironment) => {
-  return hre.network.name === 'mainnet'
-};
