@@ -4,7 +4,7 @@ import "./SwapContract.sol";
 
 contract SwapFactory is Ownable{
 
-    event SavePool(SwapContract pool);
+    event SavePool(SwapContract tokenSaleAddress, string tokenName);
 
     function createSwapContract(
     uint64 _startTime,
@@ -13,7 +13,7 @@ contract SwapFactory is Ownable{
     uint _maxSwapAmount,
     uint _totalDeposit,
     uint _swapPrice,
-    address _token,
+    string memory _token,
     bool _whitelist,
     uint _totalDepositPerUser
     ) public onlyOwner {
@@ -30,6 +30,6 @@ contract SwapFactory is Ownable{
             _totalDepositPerUser
             );
 
-        emit SavePool(s);
+        emit SavePool(s, _token);
     }
 }
