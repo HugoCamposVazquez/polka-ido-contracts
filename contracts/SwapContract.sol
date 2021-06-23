@@ -10,13 +10,15 @@ contract SwapContract is Ownable, Whitelisted{
     uint64 public startTime;
     uint64 public endTime;
     bool public whitelist;
-    address public token;
+    string public tokenName;
     uint  public minSwapAmount;
     uint public maxSwapAmount;
     uint public swapPrice;
     uint public totalDeposits;
     uint public totalDepositPerUser;
     uint public currentDeposit;
+    event MakePurchase(string substrateAdd, uint amount, string tokenName);
+
     mapping (address => uint) private _userDeposits;
 
     constructor(    
@@ -26,12 +28,12 @@ contract SwapContract is Ownable, Whitelisted{
     uint _maxSwapAmount,
     uint _totalDeposit,
     uint _swapPrice,
-    address _token,
+    string memory _tokenName,
     bool _whitelist,
     uint _totalDepositPerUser
     )
     {
-        token = _token;
+        tokenName = _tokenName;
         startTime = _startTime;
         endTime = _endTime;
         minSwapAmount = _minSwapAmount;
@@ -43,7 +45,7 @@ contract SwapContract is Ownable, Whitelisted{
     }
 
     /// @dev We are tracking how much eth(in wei) each address has deposited
-    receive() external payable {
+    function buy(string memory substrateAdd) external payable {
         // calculate how much ether the sender has already deposit
         uint userDeposit = _userDeposits[msg.sender];
         require(msg.value >= minSwapAmount && msg.value <= maxSwapAmount, "Invalid deposit amount");
@@ -57,6 +59,7 @@ contract SwapContract is Ownable, Whitelisted{
 
         currentDeposit = currentDeposit.add(msg.value);
         _userDeposits[msg.sender] = userDeposit.add(msg.value);
+        emit MakePurchase(substrateAdd, msg.value.mul(swapPrice), tokenName);
     }
 
     // Admin functions
@@ -83,10 +86,10 @@ contract SwapContract is Ownable, Whitelisted{
     }
 
     /// @dev admin user is not allowed to update the token address after the token sale is already active
-    /// @param tokenAdd The address of the project's ERC20 token
-    function setTokenAddress(address tokenAdd)external onlyOwner{
+    /// @param token Token name on the statemint network
+    function setTokenAddress(string memory token)external onlyOwner{
         require(startTime > block.timestamp, "The pool is already active");
-        token = tokenAdd;
+        tokenName = token;
     }
 
     /// @dev admin user is not allowed to update the token price after the token sale is already active
