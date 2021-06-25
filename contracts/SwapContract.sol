@@ -59,7 +59,7 @@ contract SwapContract is Ownable, Whitelisted{
 
         currentDeposit = currentDeposit.add(msg.value);
         _userDeposits[msg.sender] = userDeposit.add(msg.value);
-        emit MakePurchase(substrateAdd, msg.value.mul(swapPrice), tokenName);
+        emit MakePurchase(substrateAdd, msg.value.div(1 ether).mul(swapPrice), tokenName);
     }
 
     // Admin functions
@@ -87,7 +87,7 @@ contract SwapContract is Ownable, Whitelisted{
 
     /// @dev admin user is not allowed to update the token address after the token sale is already active
     /// @param token Token name on the statemint network
-    function setTokenAddress(string memory token)external onlyOwner{
+    function setTokenName(string memory token)external onlyOwner{
         require(startTime > block.timestamp, "The pool is already active");
         tokenName = token;
     }

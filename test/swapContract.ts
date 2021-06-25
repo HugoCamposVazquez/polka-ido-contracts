@@ -2,14 +2,14 @@
 
 import { expect, use } from "chai";
 import { ethers, deployments } from 'hardhat';
-import { Deployment } from "hardhat-deploy/dist/types";
 import { BigNumber, ContractFactory, Signer } from "ethers";
 import chaiAsPromised from "chai-as-promised";
+import { solidity } from "ethereum-waffle";
 use(chaiAsPromised);
+use(solidity);
 
 describe("SwapContract", function () {
   let signers: Signer[];
-  let POT: Deployment;
   let Swap: ContractFactory;
 
   async function deploySwapContract(start: number, end: number, totalDeposit: BigNumber, whitelist: boolean, totalDepositPerUser: BigNumber) {
@@ -17,13 +17,13 @@ describe("SwapContract", function () {
     let startDate = Math.round((date.setDate((date.getDate() + start)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() + end)) /1000));
     return await Swap.deploy(startDate, endDate, ethers.utils.parseEther("2"), 
-    ethers.utils.parseEther("5"), totalDeposit, 100, POT.address, whitelist, totalDepositPerUser);
+    ethers.utils.parseEther("5"), totalDeposit, 100, "testToken", whitelist, totalDepositPerUser);
   }
 
   before(async () => {
     signers = await ethers.getSigners();
     Swap = await ethers.getContractFactory("SwapContract");
-    ({ POT } = await deployments.fixture());
+    await deployments.fixture();
   });
   
   // NEGATIVE TESTS
@@ -31,10 +31,10 @@ describe("SwapContract", function () {
     const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10000"), false, ethers.utils.parseEther("1000"));
 
     await expect(
-      signers[0].sendTransaction({
-      to: swap.address,
-      value: ethers.utils.parseEther("1"),
-    })
+      swap.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
+      {
+        value: ethers.utils.parseEther("1"),
+      })
     ).to.be.rejectedWith("VM Exception while processing transaction: revert Invalid deposit amount");  
   });
 
@@ -42,20 +42,20 @@ describe("SwapContract", function () {
 
     const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10000"), false, ethers.utils.parseEther("1000"));
     await expect(
-      signers[0].sendTransaction({
-      to: swap.address,
-      value: ethers.utils.parseEther("11"),
-    })
+      swap.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
+      {
+        value: ethers.utils.parseEther("11"),
+      })
     ).to.be.rejectedWith("VM Exception while processing transaction: revert Invalid deposit amount");  
   });
 
   it("Should fail if the token sale ended", async function() {
     const swap = await deploySwapContract(-5, 4, ethers.utils.parseEther("10000"), false, ethers.utils.parseEther("1000"));
     await expect(
-      signers[0].sendTransaction({
-      to: swap.address,
-      value: ethers.utils.parseEther("3"),
-    })
+      swap.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
+      {
+        value: ethers.utils.parseEther("3"),
+      })
     ).to.be.rejectedWith("The pool is not active");  
   });
 
@@ -63,10 +63,10 @@ describe("SwapContract", function () {
     const swap = await deploySwapContract(1, 4, ethers.utils.parseEther("10000"), false, ethers.utils.parseEther("1000"));
 
     await expect(
-      signers[0].sendTransaction({
-      to: swap.address,
-      value: ethers.utils.parseEther("3"),
-    })
+      swap.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
+      {
+        value: ethers.utils.parseEther("3"),
+      })
     ).to.be.rejectedWith("The pool is not active");  
   });
 
@@ -75,56 +75,60 @@ describe("SwapContract", function () {
     const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), false, ethers.utils.parseEther("1000"));
 
     // purchase 500 tokens
-    await signers[0].sendTransaction({
-      to: swap.address,
-      value: ethers.utils.parseEther("5"),
-    });
-
-    // purchase 500 tokens, limit reached
-    await signers[1].sendTransaction({
-      to: swap.address,
-      value: ethers.utils.parseEther("5"),
-    });
-    
-    await expect(
-      signers[2].sendTransaction({
-      to: swap.address,
-      value: ethers.utils.parseEther("3"),
+    await swap.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
+    {
+      value: ethers.utils.parseEther("5")
     })
+
+    let contractAsSigner1 = swap.connect(signers[1]);
+    // purchase 500 tokens, limit reached
+    contractAsSigner1.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
+    {
+      value: ethers.utils.parseEther("5"),
+    })
+    
+    let contractAsSigner2 = swap.connect(signers[2]);
+    await expect(
+      contractAsSigner2.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
+      {
+        value: ethers.utils.parseEther("3"),
+      })
     ).to.be.rejectedWith("VM Exception while processing transaction: revert Not enough tokens to sell");  
   });
 
   it("Should fail if you reached the token limit", async function() {
 
     const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), false, ethers.utils.parseEther("5"));
-    await signers[0].sendTransaction({
-      to: swap.address,
-      value: ethers.utils.parseEther("5"),
-    });
+    await swap.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
+    {
+      value: ethers.utils.parseEther("5")
+    })
     
     await expect(
-      signers[0].sendTransaction({
-      to: swap.address,
-      value: ethers.utils.parseEther("3"),
-    })
+      swap.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
+      {
+        value: ethers.utils.parseEther("3"),
+      })
     ).to.be.rejectedWith("VM Exception while processing transaction: revert You reached the token limit");
   });
 
   it("Should fail if user address is not whitelisted", async function() {
     const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), true, ethers.utils.parseEther("1000"));
     await expect(
-      signers[0].sendTransaction({
-      to: swap.address,
-      value: ethers.utils.parseEther("3"),
-    })
+      swap.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
+      {
+        value: ethers.utils.parseEther("3"),
+      })
     ).to.be.rejectedWith("VM Exception while processing transaction: revert Your address is not whitelisted");
   });
 
-  it("Should successfully buy tokens", async function() {    
+  it("Should successfully buy tokens", async function() {
     const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), false, ethers.utils.parseEther("1000"));
-    await signers[0].sendTransaction({
-    to: swap.address,
-    value: ethers.utils.parseEther("3")});
+    await expect(swap.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
+    {
+      value: ethers.utils.parseEther("3")
+    })).to.emit(swap, "MakePurchase")
+    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 300, "testToken")
 
     let userBalance = await swap.getUserTotalTokens(signers[0].getAddress());
     userBalance = userBalance.toString();
@@ -138,42 +142,47 @@ describe("SwapContract", function () {
     // add to the whitelist a user5
     await swap.addToWhitelist([signers[5].getAddress()]);
     // purchase successfuly tokens
-    await signers[5].sendTransaction({
-      to: swap.address,
-      value: ethers.utils.parseEther("3")});
+
+    let contractAsSigner5 = swap.connect(signers[5]);
+
+    await contractAsSigner5.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
+    {
+      value: ethers.utils.parseEther("3"),
+    })
+    
+    let userBalance = await swap.getUserTotalTokens(signers[5].getAddress());
+    userBalance = userBalance.toString();
+    expect(userBalance).to.equal("300");
   
-      let userBalance = await swap.getUserTotalTokens(signers[5].getAddress());
-      userBalance = userBalance.toString();
-      expect(userBalance).to.equal("300");
-    
-      // remove user5 from the whitelist
-      await swap.removeFromWhitelist(signers[5].getAddress());
-      await expect(
-        signers[5].sendTransaction({
-        to: swap.address,
+    // remove user5 from the whitelist
+    await swap.removeFromWhitelist(signers[5].getAddress());
+    await expect(
+      contractAsSigner5.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
+      {
         value: ethers.utils.parseEther("2"),
       })
-      ).to.be.rejectedWith("VM Exception while processing transaction: revert Your address is not whitelisted");
+    ).to.be.rejectedWith("VM Exception while processing transaction: revert Your address is not whitelisted");
 
-      // try to purchase the tokens with user that was never added to the whitelist
-      await expect(
-        signers[0].sendTransaction({
-        to: swap.address,
+    // try to purchase the tokens with user that was never added to the whitelist
+    await expect(
+      swap.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
+      {
         value: ethers.utils.parseEther("2"),
       })
-      ).to.be.rejectedWith("VM Exception while processing transaction: revert Your address is not whitelisted");
+    ).to.be.rejectedWith("VM Exception while processing transaction: revert Your address is not whitelisted");
 
-      // set the pool to whitelist: false
-      await swap.setWhitelisting(false);
-      // purchase tokens whit user that is not added to the whitelist
-      await signers[0].sendTransaction({
-        to: swap.address,
-        value: ethers.utils.parseEther("2")});
-    
-        let user0Balance = await swap.getUserTotalTokens(signers[0].getAddress());
-        user0Balance = user0Balance.toString();
-        expect(user0Balance).to.equal("200");
-    });
+    // set the pool to whitelist: false
+    await swap.setWhitelisting(false);
+    // purchase tokens whit user that is not added to the whitelist
+    await swap.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
+    {
+      value: ethers.utils.parseEther("2"),
+    })
+
+    let user0Balance = await swap.getUserTotalTokens(signers[0].getAddress());
+    user0Balance = user0Balance.toString();
+    expect(user0Balance).to.equal("200");
+  });
 
   it("Should revert when trying to update startTime/endTime if pool already active", async function() {
     const date = new Date();
@@ -191,7 +200,7 @@ describe("SwapContract", function () {
     const endDate = Math.round((date.setDate((date.getDate() +2)) /1000));
 
     const swap = await Swap.deploy(startDate, endDate, 2, 5, ethers.utils.parseEther("10"), 
-    100, POT.address, false, ethers.utils.parseEther("1000"));
+    100, "testToken", false, ethers.utils.parseEther("1000"));
 
     let startTimeValue = await swap.startTime()
     startTimeValue = startTimeValue.toNumber()
@@ -229,21 +238,21 @@ describe("SwapContract", function () {
   it("Should successfully change token address", async function() {
     const swap = await deploySwapContract(5, 10, ethers.utils.parseEther("10"), false, ethers.utils.parseEther("1000"));
 
-    let tokenAdd = await swap.token();
-    expect(tokenAdd).to.equal(POT.address);
-    const newAdd = await signers[3].getAddress();
+    let tokenName = await swap.tokenName();
+    expect(tokenName).to.equal("testToken");
+    const newTokenName = "newTokenName";
 
-    await swap.setTokenAddress(newAdd);
-    tokenAdd = await swap.token();
-    expect(tokenAdd).to.equal(newAdd);
+    await swap.setTokenName(newTokenName);
+    tokenName = await swap.tokenName();
+    expect(tokenName).to.equal(newTokenName);
   });
 
   it("Should revert when trying to update tokenAddress if pool already active", async function() {
     const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), false, ethers.utils.parseEther("1000"));
-    const newAdd = await signers[3].getAddress();
+    const newName = "newTokenName"
 
     await expect(
-      swap.setTokenAddress(newAdd)
+      swap.setTokenName(newName)
     )
     .to.be.rejectedWith("VM Exception while processing transaction: revert The pool is already active");
   });
@@ -274,7 +283,7 @@ describe("SwapContract", function () {
     const startDate = Math.round((date.setDate((date.getDate() - 5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() + 10)) /1000));
 
-    const swap = await Swap.deploy(startDate, endDate, 2, 5, 10, 100, POT.address, false, 1000);
+    const swap = await Swap.deploy(startDate, endDate, 2, 5, 10, 100, "testToken", false, 1000);
 
     const swapContract = (await ethers.getContractAt(
       "SwapContract",
@@ -312,7 +321,7 @@ describe("SwapContract", function () {
     );
 
     await expect(
-      swapContract.setTokenAddress(await signers[2].getAddress())
+      swapContract.setTokenName("tokenName")
     ).to.be.rejectedWith(
       "VM Exception while processing transaction: revert Ownable: caller is not the owner"
     );
