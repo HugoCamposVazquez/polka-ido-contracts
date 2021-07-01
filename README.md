@@ -29,3 +29,6 @@ Available commands:
 * `test:gas` - Runs gas check
 * `test:coverage` - Runs solidity coverage
 * `typechain` - Generate Typechain typings for compiled contracts
+
+### Moonbeam development
+To run moonbeam local node use docker-compose
