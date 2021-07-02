@@ -8,13 +8,12 @@ import { expect } from "chai";
 describe("Swap Factory", function () {
     let signers: Signer[];
     let SwapFactory: Deployment;
-    let POT: Deployment;
     let SwapFactoryOwner: SwapFactory
     let swapFactory: SwapFactory
   
     before(async () => {
         signers = await ethers.getSigners();
-        ({ SwapFactory, POT } = await deployments.fixture());
+        ({ SwapFactory } = await deployments.fixture());
         SwapFactoryOwner = (await ethers.getContractAt(
         SwapFactory.abi,
         SwapFactory.address,
@@ -34,7 +33,7 @@ describe("Swap Factory", function () {
     const startDate = Math.round((date.setDate((date.getDate() -5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
     
-    const tx = await SwapFactoryOwner.createSwapContract(startDate, endDate, 2, 10, 10000, 100, POT.address, false, 1000);
+    const tx = await SwapFactoryOwner.createSwapContract(startDate, endDate, 2, 10, 10000, 100, 1, false, 1000);
     
     const txReceipt = await tx.wait(1);
     expect(txReceipt.events![1].event).to.equal("SavePool");
@@ -47,7 +46,7 @@ describe("Swap Factory", function () {
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
 
     await expect(
-        swapFactory.createSwapContract(startDate, endDate, 2, 10, 10000, 100, POT.address, false, 1000)
+        swapFactory.createSwapContract(startDate, endDate, 2, 10, 10000, 100, 1, false, 1000)
       ).to.be.rejectedWith(
         "VM Exception while processing transaction: revert Ownable: caller is not the owner"
       );

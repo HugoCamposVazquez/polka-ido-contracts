@@ -17,7 +17,7 @@ describe("SwapContract", function () {
     let startDate = Math.round((date.setDate((date.getDate() + start)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() + end)) /1000));
     return await Swap.deploy(startDate, endDate, ethers.utils.parseEther("2"), 
-    ethers.utils.parseEther("5"), totalDeposit, 100, POT.address, whitelist, totalDepositPerUser);
+    ethers.utils.parseEther("5"), totalDeposit, 100, 1, whitelist, totalDepositPerUser);
   }
 
   before(async () => {
@@ -191,7 +191,7 @@ describe("SwapContract", function () {
     const endDate = Math.round((date.setDate((date.getDate() +2)) /1000));
 
     const swap = await Swap.deploy(startDate, endDate, 2, 5, ethers.utils.parseEther("10"), 
-    100, POT.address, false, ethers.utils.parseEther("1000"));
+    100, 1, false, ethers.utils.parseEther("1000"));
 
     let startTimeValue = await swap.startTime()
     startTimeValue = startTimeValue.toNumber()
@@ -229,21 +229,19 @@ describe("SwapContract", function () {
   it("Should successfully change token address", async function() {
     const swap = await deploySwapContract(5, 10, ethers.utils.parseEther("10"), false, ethers.utils.parseEther("1000"));
 
-    let tokenAdd = await swap.token();
-    expect(tokenAdd).to.equal(POT.address);
-    const newAdd = await signers[3].getAddress();
+    let tokenID = await swap.token();
+    expect(tokenID).to.equal(1);
 
-    await swap.setTokenAddress(newAdd);
-    tokenAdd = await swap.token();
-    expect(tokenAdd).to.equal(newAdd);
+    await swap.setTokenID(2);
+    tokenID = await swap.token();
+    expect(tokenID).to.equal(2);
   });
 
   it("Should revert when trying to update tokenAddress if pool already active", async function() {
     const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), false, ethers.utils.parseEther("1000"));
-    const newAdd = await signers[3].getAddress();
 
     await expect(
-      swap.setTokenAddress(newAdd)
+      swap.setTokenID(2)
     )
     .to.be.rejectedWith("VM Exception while processing transaction: revert The pool is already active");
   });
@@ -274,7 +272,7 @@ describe("SwapContract", function () {
     const startDate = Math.round((date.setDate((date.getDate() - 5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() + 10)) /1000));
 
-    const swap = await Swap.deploy(startDate, endDate, 2, 5, 10, 100, POT.address, false, 1000);
+    const swap = await Swap.deploy(startDate, endDate, 2, 5, 10, 100, 1, false, 1000);
 
     const swapContract = (await ethers.getContractAt(
       "SwapContract",
@@ -312,7 +310,7 @@ describe("SwapContract", function () {
     );
 
     await expect(
-      swapContract.setTokenAddress(await signers[2].getAddress())
+      swapContract.setTokenID(2)
     ).to.be.rejectedWith(
       "VM Exception while processing transaction: revert Ownable: caller is not the owner"
     );

@@ -10,7 +10,7 @@ contract SwapContract is Ownable, Whitelisted{
     uint64 public startTime;
     uint64 public endTime;
     bool public whitelist;
-    address public token;
+    uint32 public token;
     uint  public minSwapAmount;
     uint public maxSwapAmount;
     uint public swapPrice;
@@ -26,7 +26,7 @@ contract SwapContract is Ownable, Whitelisted{
     uint _maxSwapAmount,
     uint _totalDeposit,
     uint _swapPrice,
-    address _token,
+    uint32 _token,
     bool _whitelist,
     uint _totalDepositPerUser
     )
@@ -82,11 +82,11 @@ contract SwapContract is Ownable, Whitelisted{
         maxSwapAmount = maxAmount;
     }
 
-    /// @dev admin user is not allowed to update the token address after the token sale is already active
-    /// @param tokenAdd The address of the project's ERC20 token
-    function setTokenAddress(address tokenAdd)external onlyOwner{
+    /// @dev admin user is not allowed to update the token id after the token sale is already active
+    /// @param tokenID statemint token id
+    function setTokenID(uint32 tokenID)external onlyOwner{
         require(startTime > block.timestamp, "The pool is already active");
-        token = tokenAdd;
+        token = tokenID;
     }
 
     /// @dev admin user is not allowed to update the token price after the token sale is already active
