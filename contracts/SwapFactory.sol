@@ -5,9 +5,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 library Vesting {
         struct VestingConfig {
-        uint32 start;
-        uint32 unlockInterval;
-        uint16 percentageToMint;
+        uint16 start;
+        uint16 unlockInterval;
+        uint8 percentageToMint;
     }
 }
 contract SwapFactory is Ownable{
