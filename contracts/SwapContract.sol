@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.1;
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Whitelisted.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
+import "./SwapFactory.sol";
 contract SwapContract is Ownable, Whitelisted{
     using SafeMath for uint;
 
@@ -17,6 +16,7 @@ contract SwapContract is Ownable, Whitelisted{
     uint public totalDeposits;
     uint public totalDepositPerUser;
     uint public currentDeposit;
+    Vesting.VestingConfig public vestingConfig;
     mapping (address => uint) private _userDeposits;
 
     constructor(    
@@ -28,7 +28,8 @@ contract SwapContract is Ownable, Whitelisted{
     uint _swapPrice,
     uint32 _token,
     bool _whitelist,
-    uint _totalDepositPerUser
+    uint _totalDepositPerUser,
+    Vesting.VestingConfig memory _vestingConfig
     )
     {
         token = _token;
@@ -40,6 +41,7 @@ contract SwapContract is Ownable, Whitelisted{
         whitelist = _whitelist;
         totalDeposits = _totalDeposit;
         totalDepositPerUser = _totalDepositPerUser;
+        vestingConfig = _vestingConfig;
     }
 
     /// @dev We are tracking how much eth(in wei) each address has deposited
@@ -94,6 +96,13 @@ contract SwapContract is Ownable, Whitelisted{
     function setSwapPrice(uint price)external onlyOwner{
         require(startTime > block.timestamp, "The pool is already active");
         swapPrice = price;
+    }
+
+    /// @dev admin user is not allowed to update the token id after the token sale is already active
+    /// @param vestingOptions vesting configuration
+    function updateVestingConfig(Vesting.VestingConfig memory vestingOptions)external onlyOwner{
+        require(startTime > block.timestamp, "The pool is already active");
+        vestingConfig = vestingOptions;
     }
 
     // Read functions

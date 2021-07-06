@@ -1,7 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.1;
 import "./SwapContract.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
+library Vesting {
+        struct VestingConfig {
+        uint32 start;
+        uint32 unlockInterval;
+        uint16 percentageToMint;
+    }
+}
 contract SwapFactory is Ownable{
 
     event SavePool(SwapContract tokenSaleAddress, uint32 tokenID, address senderAdd);
@@ -15,7 +23,8 @@ contract SwapFactory is Ownable{
     uint _swapPrice,
     uint32 _token,
     bool _whitelist,
-    uint _totalDepositPerUser
+    uint _totalDepositPerUser,
+    Vesting.VestingConfig memory vestingConfig
     ) public onlyOwner {
 
         SwapContract s = new SwapContract(
@@ -27,7 +36,8 @@ contract SwapFactory is Ownable{
             _swapPrice,
             _token,
             _whitelist,
-            _totalDepositPerUser
+            _totalDepositPerUser,
+            vestingConfig
             );
 
         emit SavePool(s, _token, msg.sender);
