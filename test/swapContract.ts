@@ -130,7 +130,7 @@ describe("SwapContract", function () {
     })).to.emit(swap, "MakePurchase")
     .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 300, "testToken")
 
-    let userBalance = await swap.getUserTotalTokens(signers[0].getAddress());
+    let userBalance = await swap.getUserTotalTokens(signers[0].getAddress(), "13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU");
     userBalance = userBalance.toString();
     expect(userBalance).to.equal("300");
   });
@@ -140,7 +140,7 @@ describe("SwapContract", function () {
 
     const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), true, ethers.utils.parseEther("1000"));
     // add to the whitelist a user5
-    await swap.addToWhitelist([signers[5].getAddress()]);
+    await swap.addToWhitelist(signers[5].getAddress(), "13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU");
     // purchase successfuly tokens
 
     let contractAsSigner5 = swap.connect(signers[5]);
@@ -150,12 +150,12 @@ describe("SwapContract", function () {
       value: ethers.utils.parseEther("3"),
     })
     
-    let userBalance = await swap.getUserTotalTokens(signers[5].getAddress());
+    let userBalance = await swap.getUserTotalTokens(signers[5].getAddress(), "13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU");
     userBalance = userBalance.toString();
     expect(userBalance).to.equal("300");
   
     // remove user5 from the whitelist
-    await swap.removeFromWhitelist(signers[5].getAddress());
+    await swap.removeFromWhitelist(signers[5].getAddress(), "13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU");
     await expect(
       contractAsSigner5.buy("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 
       {
@@ -179,7 +179,7 @@ describe("SwapContract", function () {
       value: ethers.utils.parseEther("2"),
     })
 
-    let user0Balance = await swap.getUserTotalTokens(signers[0].getAddress());
+    let user0Balance = await swap.getUserTotalTokens(signers[0].getAddress(), "13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU");
     user0Balance = user0Balance.toString();
     expect(user0Balance).to.equal("200");
   });
@@ -303,13 +303,13 @@ describe("SwapContract", function () {
     );
 
     await expect(
-      swapContract.addToWhitelist([signers[5].getAddress()])
+      swapContract.addToWhitelist(signers[5].getAddress(), "13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")
     ).to.be.rejectedWith(
       "VM Exception while processing transaction: revert Ownable: caller is not the owner"
     );
 
     await expect(
-      swapContract.removeFromWhitelist(signers[5].getAddress())
+      swapContract.removeFromWhitelist(signers[5].getAddress(), "13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")
     ).to.be.rejectedWith(
       "VM Exception while processing transaction: revert Ownable: caller is not the owner"
     );

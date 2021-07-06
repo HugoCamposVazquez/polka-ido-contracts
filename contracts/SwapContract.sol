@@ -19,7 +19,7 @@ contract SwapContract is Ownable, Whitelisted{
     uint public currentDeposit;
     event MakePurchase(string substrateAdd, uint amount, string tokenName);
 
-    mapping (address => uint) private _userDeposits;
+    mapping (address => mapping (string => uint)) private _userDeposits;
 
     constructor(    
     uint64 _startTime,
@@ -47,18 +47,18 @@ contract SwapContract is Ownable, Whitelisted{
     /// @dev We are tracking how much eth(in wei) each address has deposited
     function buy(string memory substrateAdd) external payable {
         // calculate how much ether the sender has already deposit
-        uint userDeposit = _userDeposits[msg.sender];
+        uint userDeposit = _userDeposits[msg.sender][substrateAdd];
         require(msg.value >= minSwapAmount && msg.value <= maxSwapAmount, "Invalid deposit amount");
         require(block.timestamp <= endTime && block.timestamp >= startTime, "The pool is not active");
         require(currentDeposit.add(msg.value) <= totalDeposits, "Not enough tokens to sell");
         require(userDeposit.add(msg.value) <= totalDepositPerUser, "You reached the token limit");
 
         if (whitelist) {
-            require(whitelisted[msg.sender] == true, "Your address is not whitelisted");
+            require(whitelisted[msg.sender][substrateAdd] == true, "Your address is not whitelisted");
         }
 
         currentDeposit = currentDeposit.add(msg.value);
-        _userDeposits[msg.sender] = userDeposit.add(msg.value);
+        _userDeposits[msg.sender][substrateAdd] = userDeposit.add(msg.value);
         emit MakePurchase(substrateAdd, msg.value.div(1 ether).mul(swapPrice), tokenName);
     }
 
@@ -102,9 +102,10 @@ contract SwapContract is Ownable, Whitelisted{
     // Read functions
 
     /// @dev deviding user deposit(in wei) by 1 eth becouse swapPrice is number of tokens that user can buy for 1eth
-    /// @param user The user address
+    /// @param ethAddress The user eth address
+    /// @param substrateAdd The user statemint address
     /// @return How much project token has the user bought
-    function getUserTotalTokens(address user) view external returns(uint) {
-        return _userDeposits[user].div(1 ether).mul(swapPrice);
+    function getUserTotalTokens(address ethAddress, string memory substrateAdd ) view external returns(uint) {
+        return _userDeposits[ethAddress][substrateAdd].div(1 ether).mul(swapPrice);
     }
 }
