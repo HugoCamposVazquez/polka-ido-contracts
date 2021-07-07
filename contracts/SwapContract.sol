@@ -1,23 +1,22 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.1;
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./Whitelisted.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
+import "./SwapFactory.sol";
 contract SwapContract is Ownable, Whitelisted{
     using SafeMath for uint;
 
     uint64 public startTime;
     uint64 public endTime;
     bool public whitelist;
-    IERC20 public token;
+    uint32 public token;
     uint  public minSwapAmount;
     uint public maxSwapAmount;
     uint public swapPrice;
     uint public totalDeposits;
     uint public totalDepositPerUser;
     uint public currentDeposit;
+    Vesting.VestingConfig public vestingConfig;
     mapping (address => uint) private _userDeposits;
 
     constructor(    
@@ -27,9 +26,10 @@ contract SwapContract is Ownable, Whitelisted{
     uint _maxSwapAmount,
     uint _totalDeposit,
     uint _swapPrice,
-    IERC20 _token,
+    uint32 _token,
     bool _whitelist,
-    uint _totalDepositPerUser
+    uint _totalDepositPerUser,
+    Vesting.VestingConfig memory _vestingConfig
     )
     {
         token = _token;
@@ -41,6 +41,7 @@ contract SwapContract is Ownable, Whitelisted{
         whitelist = _whitelist;
         totalDeposits = _totalDeposit;
         totalDepositPerUser = _totalDepositPerUser;
+        vestingConfig = _vestingConfig;
     }
 
     /// @dev We are tracking how much eth(in wei) each address has deposited
@@ -83,11 +84,11 @@ contract SwapContract is Ownable, Whitelisted{
         maxSwapAmount = maxAmount;
     }
 
-    /// @dev admin user is not allowed to update the token address after the token sale is already active
-    /// @param tokenAdd The address of the project's ERC20 token
-    function setTokenAddress(IERC20 tokenAdd)external onlyOwner{
+    /// @dev admin user is not allowed to update the token id after the token sale is already active
+    /// @param tokenID statemint token id
+    function setTokenID(uint32 tokenID)external onlyOwner{
         require(startTime > block.timestamp, "The pool is already active");
-        token = tokenAdd;
+        token = tokenID;
     }
 
     /// @dev admin user is not allowed to update the token price after the token sale is already active
@@ -95,6 +96,13 @@ contract SwapContract is Ownable, Whitelisted{
     function setSwapPrice(uint price)external onlyOwner{
         require(startTime > block.timestamp, "The pool is already active");
         swapPrice = price;
+    }
+
+    /// @dev admin user is not allowed to update the token id after the token sale is already active
+    /// @param vestingOptions vesting configuration
+    function updateVestingConfig(Vesting.VestingConfig memory vestingOptions)external onlyOwner{
+        require(startTime > block.timestamp, "The pool is already active");
+        vestingConfig = vestingOptions;
     }
 
     // Read functions
