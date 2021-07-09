@@ -5,15 +5,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 library Vesting {
         struct VestingConfig {
-        uint256 startTime;
-        uint256 amount;
-        uint256 vestingDuration;
-        uint256 vestingCliff;
-        uint256 daysClaimed;
-        uint256 totalClaimed;
-        uint interval;
-        uint16 start; //unused
-        uint16 unlockInterval; // in days
+        uint32 startTime; // in secodns
+        uint32 unlockInterval; // in seconds
         uint8 percentageToMint;
     }
 }
