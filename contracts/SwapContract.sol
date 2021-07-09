@@ -3,7 +3,6 @@ pragma solidity ^0.8.1;
 import "./Whitelisted.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./SwapFactory.sol";
-import "hardhat/console.sol";
 contract SwapContract is Ownable, Whitelisted{
     using SafeMath for uint;
 

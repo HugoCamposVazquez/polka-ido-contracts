@@ -421,32 +421,48 @@ describe("SwapContract", function () {
     .to.be.rejectedWith("VM Exception while processing transaction: revert Vesting didn't started yet")
 });
 
-it("Should revert when no tokens to claim", async function(){
-  const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"),
-  false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , unlockInterval: day, percentageToMint: 10});
+  it("Should revert when no tokens to claim", async function(){
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"),
+    false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , unlockInterval: day, percentageToMint: 10});
 
-  let userBalance = await swap.getUserTotalTokens(signers[0].getAddress());
-  userBalance = userBalance.toString();
-  expect(userBalance).to.equal("0");
-  await expect(swap.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU"))
-  .to.be.rejectedWith("VM Exception while processing transaction: revert You have no tokens to claim")
-});
+    let userBalance = await swap.getUserTotalTokens(signers[0].getAddress());
+    userBalance = userBalance.toString();
+    expect(userBalance).to.equal("0");
+    await expect(swap.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU"))
+    .to.be.rejectedWith("VM Exception while processing transaction: revert You have no tokens to claim")
+  });
 
-it("Should succesfully claim user tokens after vesting ended", async function(){
-  const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"),
-  false, ethers.utils.parseEther("1000"), {startTime: now - 15 * day , unlockInterval: day, percentageToMint: 10});
-  signers[0].sendTransaction( 
-  {
-    to: swap.address,
-    value: ethers.utils.parseEther("3")
-  })
-  
-  let userBalance = await swap.getUserTotalTokens(signers[0].getAddress());
-  userBalance = userBalance.toString();
-  expect(userBalance).to.equal("300");
-  await expect(swap.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")).to.emit(swap, "Claim")
-  .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 300, 1)
-});
+  it("Should succesfully claim user tokens after vesting ended", async function(){
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"),
+    false, ethers.utils.parseEther("1000"), {startTime: now - 15 * day , unlockInterval: day, percentageToMint: 10});
+    signers[0].sendTransaction( 
+    {
+      to: swap.address,
+      value: ethers.utils.parseEther("3")
+    })
+    
+    let userBalance = await swap.getUserTotalTokens(signers[0].getAddress());
+    userBalance = userBalance.toString();
+    expect(userBalance).to.equal("300");
+    await expect(swap.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")).to.emit(swap, "Claim")
+    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 300, 1)
+  });
+
+  it("Should succesfully claim user tokens when 100% devided by percentageToMint not a whole number", async function(){
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"),
+    false, ethers.utils.parseEther("1000"), {startTime: now - 4 * day , unlockInterval: day, percentageToMint: 33});
+    signers[0].sendTransaction( 
+    {
+      to: swap.address,
+      value: ethers.utils.parseEther("3")
+    })
+    
+    let userBalance = await swap.getUserTotalTokens(signers[0].getAddress());
+    userBalance = userBalance.toString();
+    expect(userBalance).to.equal("300");
+    await expect(swap.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")).to.emit(swap, "Claim")
+    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 300, 1)
+  });
 });
 
 
