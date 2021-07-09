@@ -155,5 +155,5 @@ contract SwapContract is Ownable, Whitelisted{
 
     function currentTime() public view returns(uint256) {
     return block.timestamp;
-}
+    }
 }
