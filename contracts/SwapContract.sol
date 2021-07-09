@@ -16,7 +16,6 @@ contract SwapContract is Ownable, Whitelisted{
     uint public totalDeposits;
     uint public totalDepositPerUser;
     uint public currentDeposit;
-    uint256 constant internal SECONDS_PER_DAY = 86400;
 
     event Claim(string substrateAdd, uint amount, uint32 tokenID);
 
