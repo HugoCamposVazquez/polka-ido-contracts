@@ -125,10 +125,10 @@ contract SwapContract is Ownable, Whitelisted{
     function claimVestedTokens(string memory substrateAdd) external {
         require (currentTime() >= vestingConfig.startTime, "Vesting didn't started yet");
         uint elapsedTime = currentTime().sub(vestingConfig.startTime);
-        uint userTokens = getUserTotalTokens(msg.sender);
+        uint userTotalTokens = getUserTotalTokens(msg.sender);
         uint userMintedTokens = tokensMinted[msg.sender];
 
-        uint tokensPerInterval = userTokens.mul(vestingConfig.percentageToMint).div(100);
+        uint tokensPerInterval = userTotalTokens.mul(vestingConfig.percentageToMint).div(100);
 
         uint intervalCount = elapsedTime.div(vestingConfig.unlockInterval);
         uint tokensToMintInInterval = tokensPerInterval.mul(intervalCount);
@@ -136,13 +136,13 @@ contract SwapContract is Ownable, Whitelisted{
         require(userMintedTokens < tokensToMintInInterval, "You have no tokens to claim");
 
         // if vesting ended mint all remaining tokens
-        if(tokensToMintInInterval >= userTokens && 
-        userMintedTokens < userTokens) {
-            emit Claim(substrateAdd, userTokens
+        if(tokensToMintInInterval >= userTotalTokens && 
+        userMintedTokens < userTotalTokens) {
+            emit Claim(substrateAdd, userTotalTokens
                 .sub(userMintedTokens), tokenID);
 
             tokensMinted[msg.sender] = userMintedTokens
-                .add(userTokens.sub(userMintedTokens));
+                .add(userTotalTokens.sub(userMintedTokens));
         }
         else {
             emit Claim(substrateAdd, tokensToMintInInterval
