@@ -3,6 +3,7 @@ pragma solidity ^0.8.1;
 import "./Whitelisted.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./SwapFactory.sol";
+import "hardhat/console.sol";
 contract SwapContract is Ownable, Whitelisted{
     using SafeMath for uint;
 
@@ -18,11 +19,10 @@ contract SwapContract is Ownable, Whitelisted{
     uint public currentDeposit;
     uint256 constant internal SECONDS_PER_DAY = 86400;
 
-    event MakePurchase(string substrateAdd, uint amount, uint32 tokenID);
     event Claim(string substrateAdd, uint amount, uint32 tokenID);
 
-    mapping (address => mapping (string => uint)) private _tokenMinted;
-    mapping (address => mapping (string => uint)) private _userDeposits;
+    mapping (address =>  uint) private tokensMinted;
+    mapping (address =>  uint) private _userDeposits;
 
     Vesting.VestingConfig public vestingConfig;
 
@@ -52,21 +52,20 @@ contract SwapContract is Ownable, Whitelisted{
     }
 
     /// @dev We are tracking how much eth(in wei) each address has deposited
-    function buy(string memory substrateAdd) external payable {
+    receive() external payable {
         // calculate how much ether the sender has already deposit
-        uint userDeposit = _userDeposits[msg.sender][substrateAdd];
+        uint userDeposit = _userDeposits[msg.sender];
         require(msg.value >= minSwapAmount && msg.value <= maxSwapAmount, "Invalid deposit amount");
-        require(block.timestamp <= endTime && block.timestamp >= startTime, "The pool is not active");
+        require(currentTime() <= endTime && currentTime() >= startTime, "The pool is not active");
         require(currentDeposit.add(msg.value) <= totalDeposits, "Not enough tokens to sell");
         require(userDeposit.add(msg.value) <= totalDepositPerUser, "You reached the token limit");
 
         if (whitelist) {
-            require(whitelisted[msg.sender][substrateAdd] == true, "Your address is not whitelisted");
+            require(whitelisted[msg.sender] == true, "Your address is not whitelisted");
         }
 
         currentDeposit = currentDeposit.add(msg.value);
-        _userDeposits[msg.sender][substrateAdd] = userDeposit.add(msg.value);
-        emit MakePurchase(substrateAdd, msg.value.div(1 ether).mul(swapPrice), tokenID);
+        _userDeposits[msg.sender] = userDeposit.add(msg.value);
     }
 
     // Admin functions
@@ -80,7 +79,7 @@ contract SwapContract is Ownable, Whitelisted{
     /// @param start unix timestamp when the token sale for the project starts
     /// @param end unix timestamp when the token sale for the project ends
     function setTimeDates(uint64 start, uint64 end)external onlyOwner{
-        require(startTime > block.timestamp, "The pool is already active");
+        require(startTime > currentTime(), "The pool is already active");
         startTime = start;
         endTime = end;
     }
@@ -95,86 +94,66 @@ contract SwapContract is Ownable, Whitelisted{
     /// @dev admin user is not allowed to update the token id after the token sale is already active
     /// @param _tokenID statemint token id
     function setTokenID(uint32 _tokenID)external onlyOwner{
-        require(startTime > block.timestamp, "The pool is already active");
+        require(startTime > currentTime(), "The pool is already active");
         tokenID = _tokenID;
     }
 
     /// @dev admin user is not allowed to update the token price after the token sale is already active
     /// @param price how much project tokens can user purchase for 1 ETH
     function setSwapPrice(uint price)external onlyOwner{
-        require(startTime > block.timestamp, "The pool is already active");
+        require(startTime > currentTime(), "The pool is already active");
         swapPrice = price;
     }
 
     /// @dev admin user is not allowed to update the token id after the token sale is already active
     /// @param vestingOptions vesting configuration
     function updateVestingConfig(Vesting.VestingConfig memory vestingOptions)external onlyOwner{
-        require(startTime > block.timestamp, "The pool is already active");
+        require(startTime > currentTime(), "The pool is already active");
         vestingConfig = vestingOptions;
     }
 
     // Read functions
 
     /// @dev deviding user deposit(in wei) by 1 eth becouse swapPrice is number of tokens that user can buy for 1eth
-    /// @param ethAddress The user eth address
-    /// @param substrateAdd The user statemint address
+    /// @param add The user eth address
     /// @return How much project token has the user bought
-    function getUserTotalTokens(address ethAddress, string memory substrateAdd ) view public returns(uint) {
-        return _userDeposits[ethAddress][substrateAdd].div(1 ether).mul(swapPrice);
+    function getUserTotalTokens(address add) view public returns(uint) {
+        return _userDeposits[add].div(1 ether).mul(swapPrice);
     }
 
-    /// @notice Calculate the vested and unclaimed months and tokens available for `_grantId` to claim
-    /// Due to rounding errors once grant duration is reached, returns the entire left grant amount
-    /// Returns (0, 0) if cliff has not been reached
-    function calculateGrantClaim(string memory substrateAdd) public view returns (uint256, uint256) {
-
-        // For grants created with a future start date, that hasn't been reached, return 0, 0
-        if (currentTime() < vestingConfig.startTime) {
-            return (0, 0);
-        }
-
-        // Check cliff was reached
-        uint elapsedTime = currentTime().sub(vestingConfig.startTime);
-        uint elapsedDays = elapsedTime.div(SECONDS_PER_DAY);
-        
-        if (elapsedDays < vestingConfig.vestingCliff) {
-            return (elapsedDays, 0);
-        }
-        uint userTokens = getUserTotalTokens(msg.sender, substrateAdd);
-
-        uint tokensPerInterval = userTokens.mul(vestingConfig.percentageToMint).div(10000);
-
-        return (tokensPerInterval, elapsedDays);
-        // If over vesting duration, all tokens vested
-/*         if (elapsedDays >= vestingConfig.vestingDuration) {
-            uint256 remainingGrant = vestingConfig.amount.sub(vestingConfig.totalClaimed);
-            return (vestingConfig.vestingDuration, remainingGrant);
-        } else {
-            uint256 daysVested = elapsedDays.sub(vestingConfig.daysClaimed);
-            uint256 amountVestedPerDay = vestingConfig.amount.div(uint256(vestingConfig.vestingDuration));
-            uint256 amountVested = uint256(daysVested.mul(amountVestedPerDay));
-            return (daysVested, amountVested);
-        } */
-    }
-
-    /// @notice Allows a grant recipient to claim their vested tokens. Errors if no tokens have vested
-    /// It is advised recipients check they are entitled to claim via `calculateGrantClaim` before calling this
+    /// @param substrateAdd Statemint addres where the tokens will be minted
     function claimVestedTokens(string memory substrateAdd) external {
-        uint256 tokensPerInterval;
-        uint256 elapsedDays;
-        (tokensPerInterval, elapsedDays) = calculateGrantClaim(substrateAdd);
+        require (currentTime() >= vestingConfig.startTime, "Vesting didn't started yet");
+        uint elapsedTime = currentTime().sub(vestingConfig.startTime);
+        uint userTokens = getUserTotalTokens(msg.sender);
+        uint userMintedTokens = tokensMinted[msg.sender];
 
-        uint intervalCount = elapsedDays.div(vestingConfig.unlockInterval);
-        require(_tokenMinted[msg.sender][substrateAdd] < tokensPerInterval.mul(intervalCount));
+        uint tokensPerInterval = userTokens.mul(vestingConfig.percentageToMint).div(100);
 
-        emit Claim(substrateAdd, tokensPerInterval.mul(intervalCount)
-        .sub(_tokenMinted[msg.sender][substrateAdd]), tokenID);
+        uint intervalCount = elapsedTime.div(vestingConfig.unlockInterval);
+        uint tokensToMintInInterval = tokensPerInterval.mul(intervalCount);
 
-        _tokenMinted[msg.sender][substrateAdd] = _tokenMinted[msg.sender][substrateAdd]
-        .add(tokensPerInterval.mul(intervalCount).sub(_tokenMinted[msg.sender][substrateAdd]));
+        require(userMintedTokens < tokensToMintInInterval, "You have no tokens to claim");
+
+        // if vesting ended mint all remaining tokens
+        if(tokensToMintInInterval >= userTokens && 
+        userMintedTokens < userTokens) {
+            emit Claim(substrateAdd, userTokens
+                .sub(userMintedTokens), tokenID);
+
+            tokensMinted[msg.sender] = userMintedTokens
+                .add(userTokens.sub(userMintedTokens));
+        }
+        else {
+            emit Claim(substrateAdd, tokensToMintInInterval
+                .sub(userMintedTokens), tokenID);
+                
+            tokensMinted[msg.sender] = userMintedTokens
+                .add(tokensToMintInInterval.sub(userMintedTokens));
+        }
     }
 
-        function currentTime() public view returns(uint256) {
-        return block.timestamp;
-    }
+    function currentTime() public view returns(uint256) {
+    return block.timestamp;
+}
 }
