@@ -11,8 +11,10 @@ describe("SwapContract", function () {
   let Swap: ContractFactory;
   const day = 86400
   const now = Math.round(Date.now() / 1000)
+
   async function deploySwapContract(
     start: number, end: number,
+    minPurcValue: BigNumber,
     totalDeposit: BigNumber, whitelist: boolean,
     totalDepositPerUser: BigNumber, 
     vesting: {startTime: number, 
@@ -21,7 +23,7 @@ describe("SwapContract", function () {
     const date = new Date();
     let startDate = Math.round((date.setDate((date.getDate() + start)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() + end)) /1000));
-    return await Swap.deploy(startDate, endDate, ethers.utils.parseEther("2"), 
+    return await Swap.deploy(startDate, endDate, minPurcValue, 
     ethers.utils.parseEther("5"), totalDeposit, 100, 1, whitelist, totalDepositPerUser, vesting);
   }
 
@@ -33,7 +35,7 @@ describe("SwapContract", function () {
   
   // NEGATIVE TESTS
   it("Should fail if not enough ether provided", async function() {
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10000"), 
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10000"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
     await expect(
@@ -47,7 +49,7 @@ describe("SwapContract", function () {
 
   it("Should fail if too much ether provided", async function() {
 
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10000"), 
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10000"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
     await expect(
       signers[0].sendTransaction( 
@@ -59,7 +61,7 @@ describe("SwapContract", function () {
   });
 
   it("Should fail if the token sale ended", async function() {
-    const swap = await deploySwapContract(-5, 4, ethers.utils.parseEther("10000"), 
+    const swap = await deploySwapContract(-5, 4, ethers.utils.parseEther("2"), ethers.utils.parseEther("10000"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
     await expect(
       signers[0].sendTransaction( 
@@ -71,7 +73,7 @@ describe("SwapContract", function () {
   });
 
   it("Should fail if the pool token sale did not started yet", async function() {
-    const swap = await deploySwapContract(1, 4, ethers.utils.parseEther("10000"), 
+    const swap = await deploySwapContract(1, 4, ethers.utils.parseEther("2"), ethers.utils.parseEther("10000"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
     await expect(
@@ -85,7 +87,7 @@ describe("SwapContract", function () {
 
 
   it("Should fail if all tokens are sold", async function() {
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), 
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
     // purchase 500 tokens
@@ -113,7 +115,7 @@ describe("SwapContract", function () {
 
   it("Should fail if you reached the token limit", async function() {
 
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), 
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     false, ethers.utils.parseEther("5"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
     await signers[0].sendTransaction( 
     {
@@ -131,7 +133,7 @@ describe("SwapContract", function () {
   });
 
   it("Should fail if user address is not whitelisted", async function() {
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), 
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     true, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
     await expect(
       signers[0].sendTransaction( 
@@ -143,7 +145,7 @@ describe("SwapContract", function () {
   });
 
   it("Should successfully buy tokens", async function() {
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), 
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
     signers[0].sendTransaction( 
     {
@@ -158,7 +160,7 @@ describe("SwapContract", function () {
 
   it("Should successfully buy tokens when user whitelisted", async function() {
 
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), 
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     true, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
     // add to the whitelist a user5
     await swap.addToWhitelist(signers[5].getAddress());
@@ -212,7 +214,7 @@ describe("SwapContract", function () {
     const startDate = Math.round((date.setDate((date.getDate() -5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
 
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), 
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
     await expect(swap.setTimeDates(startDate, endDate))
     .to.be.rejectedWith("VM Exception while processing transaction: revert The pool is already active");
@@ -246,7 +248,7 @@ describe("SwapContract", function () {
   });
 
   it("Should successfully change min and max swap amount", async function() {
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), 
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
     let minSwap = await swap.minSwapAmount();
     let maxSwap = await swap.maxSwapAmount();
@@ -261,7 +263,7 @@ describe("SwapContract", function () {
   });
 
   it("Should successfully change token address", async function() {
-    const swap = await deploySwapContract(5, 10, ethers.utils.parseEther("10"), 
+    const swap = await deploySwapContract(5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
     let tokenID = await swap.tokenID();
@@ -273,7 +275,7 @@ describe("SwapContract", function () {
   });
 
   it("Should revert when trying to update tokenAddress if pool already active", async function() {
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), 
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
     await expect(
@@ -283,7 +285,7 @@ describe("SwapContract", function () {
   });
 
   it("Should successfully change swap price", async function() {
-    const swap = await deploySwapContract(5, 10, ethers.utils.parseEther("10"), 
+    const swap = await deploySwapContract(5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
     let swapPrice = await swap.swapPrice();
     swapPrice = swapPrice.toNumber();
@@ -297,7 +299,7 @@ describe("SwapContract", function () {
     expect(swapPrice).to.equal(500);
   });
   it("Should successfully update vesting config", async function() {
-    const swap = await deploySwapContract(5, 10, ethers.utils.parseEther("10"), 
+    const swap = await deploySwapContract(5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
     let vestingOptions = await swap.vestingConfig();
     expect(vestingOptions).to.be.deep.equal([now, 5, 10]);
@@ -308,7 +310,7 @@ describe("SwapContract", function () {
   });
 
   it("Should revert when trying to update vesting config if pool already active", async function() {
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), 
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
     await expect(
@@ -318,7 +320,7 @@ describe("SwapContract", function () {
   });
 
   it("Should revert when trying to update swap price if pool already active", async function() {
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"), 
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
     await expect(swap.setSwapPrice(500))
@@ -390,7 +392,7 @@ describe("SwapContract", function () {
 
   // test claiming tokens
   it("should successfuly claim user tokens", async function(){
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"),
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , unlockInterval: day, percentageToMint: 10});
     signers[0].sendTransaction( 
     {
@@ -406,7 +408,7 @@ describe("SwapContract", function () {
   });
 
   it("Should revert when vesting didn't started yet", async function(){
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"),
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now + 2 * day , unlockInterval: day, percentageToMint: 10});
     signers[0].sendTransaction( 
     {
@@ -422,7 +424,7 @@ describe("SwapContract", function () {
 });
 
   it("Should revert when no tokens to claim", async function(){
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"),
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , unlockInterval: day, percentageToMint: 10});
 
     let userBalance = await swap.getUserTotalTokens(signers[0].getAddress());
@@ -433,7 +435,7 @@ describe("SwapContract", function () {
   });
 
   it("Should succesfully claim user tokens after vesting ended", async function(){
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"),
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 15 * day , unlockInterval: day, percentageToMint: 10});
     signers[0].sendTransaction( 
     {
@@ -449,7 +451,7 @@ describe("SwapContract", function () {
   });
 
   it("Should succesfully claim user tokens when 100% devided by percentageToMint not a whole number", async function(){
-    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("10"),
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 4 * day , unlockInterval: day, percentageToMint: 33});
     signers[0].sendTransaction( 
     {
@@ -462,6 +464,22 @@ describe("SwapContract", function () {
     expect(userBalance).to.equal("300");
     await expect(swap.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")).to.emit(swap, "Claim")
     .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 300, 1)
+  });
+
+  it("Should succesfully claim user tokens when purchased tokens for les than 1 eth", async function(){
+    const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("0"), ethers.utils.parseEther("10"),
+    false, ethers.utils.parseEther("1000"), {startTime: now - 15 * day , unlockInterval: day, percentageToMint: 10});
+    signers[0].sendTransaction( 
+    {
+      to: swap.address,
+      value: ethers.utils.parseEther("0.5")
+    })
+    
+    let userBalance = await swap.getUserTotalTokens(signers[0].getAddress());
+    userBalance = userBalance.toString();
+    expect(userBalance).to.equal("50");
+    await expect(swap.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")).to.emit(swap, "Claim")
+    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 50, 1)
   });
 });
 

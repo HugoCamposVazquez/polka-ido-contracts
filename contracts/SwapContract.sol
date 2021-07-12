@@ -116,7 +116,7 @@ contract SwapContract is Ownable, Whitelisted{
     /// @param add The user eth address
     /// @return How much project token has the user bought
     function getUserTotalTokens(address add) view public returns(uint) {
-        return _userDeposits[add].div(1 ether).mul(swapPrice);
+        return _userDeposits[add].mul(swapPrice).div(1 ether);
     }
 
     /// @param substrateAdd Statemint addres where the tokens will be minted
