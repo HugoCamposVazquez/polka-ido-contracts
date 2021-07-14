@@ -4,15 +4,19 @@ import "./SwapContract.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 library Vesting {
-        struct VestingConfig {
+    struct VestingConfig {
         uint32 startTime; // in secodns
         uint32 unlockInterval; // in seconds
         uint8 percentageToMint;
     }
+    struct Token {
+        uint32 tokenID;
+        uint8 decimals;
+    }
 }
 contract SwapFactory is Ownable{
 
-    event SavePool(SwapContract tokenSaleAddress, uint32 tokenID, address senderAdd);
+    event SavePool(SwapContract tokenSaleAddress, Vesting.Token token, address senderAdd);
 
     function createSwapContract(
     uint64 _startTime,
@@ -21,7 +25,7 @@ contract SwapFactory is Ownable{
     uint _maxSwapAmount,
     uint _totalDeposit,
     uint _swapPrice,
-    uint32 _token,
+    Vesting.Token memory _token,
     bool _whitelist,
     uint _totalDepositPerUser,
     Vesting.VestingConfig memory vestingConfig

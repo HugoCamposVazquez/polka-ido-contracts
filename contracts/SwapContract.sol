@@ -9,7 +9,7 @@ contract SwapContract is Ownable, Whitelisted{
     uint64 public startTime;
     uint64 public endTime;
     bool public whitelist;
-    uint32 public tokenID;
+    Vesting.Token public token;
     uint  public minSwapAmount;
     uint public maxSwapAmount;
     uint public swapPrice;
@@ -17,7 +17,7 @@ contract SwapContract is Ownable, Whitelisted{
     uint public totalDepositPerUser;
     uint public currentDeposit;
 
-    event Claim(string substrateAdd, uint amount, uint32 tokenID);
+    event Claim(string substrateAdd, uint amount, Vesting.Token token);
 
     mapping (address =>  uint) private tokensMinted;
     mapping (address =>  uint) private _userDeposits;
@@ -31,13 +31,13 @@ contract SwapContract is Ownable, Whitelisted{
     uint _maxSwapAmount,
     uint _totalDeposit,
     uint _swapPrice,
-    uint32 _tokenID,
+    Vesting.Token memory _token,
     bool _whitelist,
     uint _totalDepositPerUser,
     Vesting.VestingConfig memory _vestingConfig
     )
     {
-        tokenID = _tokenID;
+        token = _token;
         startTime = _startTime;
         endTime = _endTime;
         minSwapAmount = _minSwapAmount;
@@ -90,10 +90,10 @@ contract SwapContract is Ownable, Whitelisted{
     }
 
     /// @dev admin user is not allowed to update the token id after the token sale is already active
-    /// @param _tokenID statemint token id
-    function setTokenID(uint32 _tokenID)external onlyOwner{
+    /// @param _token statemint token info
+    function setToken(Vesting.Token memory _token) external onlyOwner{
         require(startTime > currentTime(), "The pool is already active");
-        tokenID = _tokenID;
+        token = _token;
     }
 
     /// @dev admin user is not allowed to update the token price after the token sale is already active
@@ -105,7 +105,7 @@ contract SwapContract is Ownable, Whitelisted{
 
     /// @dev admin user is not allowed to update the token id after the token sale is already active
     /// @param vestingOptions vesting configuration
-    function updateVestingConfig(Vesting.VestingConfig memory vestingOptions)external onlyOwner{
+    function updateVestingConfig(Vesting.VestingConfig memory vestingOptions) external onlyOwner{
         require(startTime > currentTime(), "The pool is already active");
         vestingConfig = vestingOptions;
     }
@@ -137,14 +137,14 @@ contract SwapContract is Ownable, Whitelisted{
         if(tokensToMintInInterval >= userTotalTokens && 
         userMintedTokens < userTotalTokens) {
             emit Claim(substrateAdd, userTotalTokens
-                .sub(userMintedTokens), tokenID);
+                .sub(userMintedTokens), token);
 
             tokensMinted[msg.sender] = userMintedTokens
                 .add(userTotalTokens.sub(userMintedTokens));
         }
         else {
             emit Claim(substrateAdd, tokensToMintInInterval
-                .sub(userMintedTokens), tokenID);
+                .sub(userMintedTokens), token);
                 
             tokensMinted[msg.sender] = userMintedTokens
                 .add(tokensToMintInInterval.sub(userMintedTokens));

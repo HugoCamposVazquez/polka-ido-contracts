@@ -24,7 +24,7 @@ describe("SwapContract", function () {
     let startDate = Math.round((date.setDate((date.getDate() + start)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() + end)) /1000));
     return await Swap.deploy(startDate, endDate, minPurcValue, 
-    ethers.utils.parseEther("5"), totalDeposit, 100, 1, whitelist, totalDepositPerUser, vesting);
+    ethers.utils.parseEther("5"), totalDeposit, 100, {tokenID: 1, decimals: 5}, whitelist, totalDepositPerUser, vesting);
   }
 
   before(async () => {
@@ -226,7 +226,7 @@ describe("SwapContract", function () {
     const endDate = Math.round((date.setDate((date.getDate() +2)) /1000));
 
     const swap = await Swap.deploy(startDate, endDate, 2, 5, ethers.utils.parseEther("10"), 
-    100, 1, false, ethers.utils.parseEther("1000"), {startTime: 7,unlockInterval: 30, percentageToMint: 10});
+    100, {tokenID: 1, decimals: 5}, false, ethers.utils.parseEther("1000"), {startTime: 7,unlockInterval: 30, percentageToMint: 10});
 
     let startTimeValue = await swap.startTime()
     startTimeValue = startTimeValue.toNumber()
@@ -266,12 +266,13 @@ describe("SwapContract", function () {
     const swap = await deploySwapContract(5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
-    let tokenID = await swap.tokenID();
-    expect(tokenID).to.equal(1);
-
-    await swap.setTokenID(2);
-    tokenID = await swap.tokenID();
-    expect(tokenID).to.equal(2);
+    let token = await swap.token();
+    expect(token[0]).to.be.equal(1);
+    expect(token[1]).to.be.equal(5);
+    await swap.setToken({tokenID: 2, decimals: 3});
+    token = await swap.token();
+    expect(token[0]).to.be.equal(2);
+    expect(token[1]).to.be.equal(3);
   });
 
   it("Should revert when trying to update tokenAddress if pool already active", async function() {
@@ -279,7 +280,7 @@ describe("SwapContract", function () {
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
     await expect(
-      swap.setTokenID(2)
+      swap.setToken({tokenID: 2, decimals: 3})
     )
     .to.be.rejectedWith("VM Exception while processing transaction: revert The pool is already active");
   });
@@ -332,7 +333,7 @@ describe("SwapContract", function () {
     const startDate = Math.round((date.setDate((date.getDate() - 5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() + 10)) /1000));
 
-    const swap = await Swap.deploy(startDate, endDate, 2, 5, 10, 100, 1, false, 1000, {startTime: 7,unlockInterval: 30, percentageToMint: 10});
+    const swap = await Swap.deploy(startDate, endDate, 2, 5, 10, 100, {tokenID: 1, decimals: 5}, false, 1000, {startTime: 7,unlockInterval: 30, percentageToMint: 10});
 
     const swapContract = (await ethers.getContractAt(
       "SwapContract",
@@ -370,7 +371,7 @@ describe("SwapContract", function () {
     );
 
     await expect(
-      swapContract.setTokenID(2)
+      swapContract.setToken({tokenID: 2, decimals: 3})
     ).to.be.rejectedWith(
       "VM Exception while processing transaction: revert Ownable: caller is not the owner"
     );
@@ -404,7 +405,7 @@ describe("SwapContract", function () {
     userBalance = userBalance.toString();
     expect(userBalance).to.equal("300");
     await expect(swap.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")).to.emit(swap, "Claim")
-    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 60, 1)
+    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 60, [ 1, 5 ])
   });
 
   it("Should revert when vesting didn't started yet", async function(){
@@ -447,7 +448,7 @@ describe("SwapContract", function () {
     userBalance = userBalance.toString();
     expect(userBalance).to.equal("300");
     await expect(swap.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")).to.emit(swap, "Claim")
-    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 300, 1)
+    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 300, [1, 5])
   });
 
   it("Should succesfully claim user tokens when 100% devided by percentageToMint not a whole number", async function(){
@@ -463,7 +464,7 @@ describe("SwapContract", function () {
     userBalance = userBalance.toString();
     expect(userBalance).to.equal("300");
     await expect(swap.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")).to.emit(swap, "Claim")
-    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 300, 1)
+    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 300, [1, 5])
   });
 
   it("Should succesfully claim user tokens when purchased tokens for les than 1 eth", async function(){
@@ -479,7 +480,7 @@ describe("SwapContract", function () {
     userBalance = userBalance.toString();
     expect(userBalance).to.equal("50");
     await expect(swap.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")).to.emit(swap, "Claim")
-    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 50, 1)
+    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 50, [1, 5])
   });
 });
 
