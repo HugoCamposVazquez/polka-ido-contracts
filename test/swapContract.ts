@@ -147,11 +147,15 @@ describe("SwapContract", function () {
   it("Should successfully buy tokens", async function() {
     const swap = await deploySwapContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
-    signers[0].sendTransaction( 
-    {
-      to: swap.address,
-      value: ethers.utils.parseEther("3")
-    })
+
+    await expect(    
+      signers[0].sendTransaction( 
+      {
+        to: swap.address,
+        value: ethers.utils.parseEther("3")
+      })).to.emit(swap, "BuyTokens")
+    .withArgs(await signers[0].getAddress(), ethers.utils.parseEther("3"))
+
     let userBalance = await swap.getUserTotalTokens(signers[0].getAddress());
     userBalance = userBalance.toString();
     expect(userBalance).to.equal("300");
