@@ -142,7 +142,7 @@ contract SwapContract is Ownable, Whitelisted{
             tokensMinted[msg.sender] = userMintedTokens
                 .add(userTotalTokens.sub(userMintedTokens));
         }
-        else {
+        else if(userMintedTokens < userTotalTokens){
             emit Claim(substrateAdd, tokensToMintInInterval
                 .sub(userMintedTokens), token);
                 
