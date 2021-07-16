@@ -17,6 +17,7 @@ contract SwapContract is Ownable, Whitelisted{
     uint public totalDeposits;
     uint public totalDepositPerUser;
     uint public currentDeposit;
+    string public metadataURI;
 
     event Claim(string substrateAdd, uint amount, Vesting.Token token);
 
@@ -36,7 +37,8 @@ contract SwapContract is Ownable, Whitelisted{
     bool _whitelist,
     uint _totalDepositPerUser,
     Vesting.VestingConfig memory _vestingConfig,
-    bool _isFeatured
+    bool _isFeatured,
+    string memory _metadataURI
     )
     {
         token = _token;
@@ -50,6 +52,7 @@ contract SwapContract is Ownable, Whitelisted{
         totalDepositPerUser = _totalDepositPerUser;
         vestingConfig = _vestingConfig;
         isFeatured = _isFeatured;
+        metadataURI = _metadataURI;
     }
 
     /// @dev We are tracking how much eth(in wei) each address has deposited
@@ -116,6 +119,11 @@ contract SwapContract is Ownable, Whitelisted{
     /// @param _isFeatured - is this crowdSale featured
     function setFeatured(bool _isFeatured) external onlyOwner {
         isFeatured = _isFeatured;
+    }
+
+    /// @param _metadataURI - link on IPFS 
+    function setMetadataURI(string memory _metadataURI) external onlyOwner {
+        metadataURI = _metadataURI;
     }
 
     // Read functions

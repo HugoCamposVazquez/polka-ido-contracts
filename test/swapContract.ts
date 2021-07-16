@@ -24,7 +24,7 @@ describe("SwapContract", function () {
     let startDate = Math.round((date.setDate((date.getDate() + start)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() + end)) /1000));
     return await Swap.deploy(startDate, endDate, minPurcValue, 
-    ethers.utils.parseEther("5"), totalDeposit, 100, {tokenID: 1, decimals: 5}, whitelist, totalDepositPerUser, vesting, true);
+    ethers.utils.parseEther("5"), totalDeposit, 100, {tokenID: 1, decimals: 5}, whitelist, totalDepositPerUser, vesting, true, "http://ipfsLink.com");
   }
 
   before(async () => {
@@ -313,6 +313,19 @@ describe("SwapContract", function () {
     expect(isFeatured).to.be.false;
   });
 
+  it("Should successfully change metadataURI", async function() {
+    const swap = await deploySwapContract(5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
+    false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
+    let metadataURI = await swap.metadataURI();
+
+    expect(metadataURI).to.be.equal("http://ipfsLink.com");
+
+    await swap.setMetadataURI("http://ipfsLinkChanged.com");
+    metadataURI = await swap.metadataURI();
+
+    expect(metadataURI).to.be.equal("http://ipfsLinkChanged.com");
+    });
+
 
   it("Should successfully update vesting config", async function() {
     const swap = await deploySwapContract(5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
@@ -400,6 +413,12 @@ describe("SwapContract", function () {
 
     await expect(
       swapContract.updateVestingConfig({startTime: 10,unlockInterval: 60, percentageToMint: 25})
+    ).to.be.rejectedWith(
+      "VM Exception while processing transaction: revert Ownable: caller is not the owner"
+    );
+
+    await expect(
+      swapContract.setMetadataURI("http://ipfsLink.com")
     ).to.be.rejectedWith(
       "VM Exception while processing transaction: revert Ownable: caller is not the owner"
     );

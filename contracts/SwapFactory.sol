@@ -29,7 +29,8 @@ contract SwapFactory is Ownable{
     bool _whitelist,
     uint _totalDepositPerUser,
     Vesting.VestingConfig memory vestingConfig,
-    bool _isFeatured
+    bool _isFeatured,
+    string memory _metadataURI
     ) public onlyOwner {
 
         SwapContract s = new SwapContract(
@@ -43,7 +44,8 @@ contract SwapFactory is Ownable{
             _whitelist,
             _totalDepositPerUser,
             vestingConfig,
-            _isFeatured
+            _isFeatured,
+            _metadataURI
             );
 
         emit SavePool(s, _token, msg.sender);
