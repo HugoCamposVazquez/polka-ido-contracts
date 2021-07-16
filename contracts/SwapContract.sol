@@ -18,6 +18,7 @@ contract SwapContract is Ownable, Whitelisted{
     uint public currentDeposit;
 
     event Claim(string substrateAdd, uint amount, Vesting.Token token);
+    event BuyTokens(address user, uint amount);
 
     mapping (address =>  uint) private tokensMinted;
     mapping (address =>  uint) private _userDeposits;
@@ -64,6 +65,7 @@ contract SwapContract is Ownable, Whitelisted{
 
         currentDeposit = currentDeposit.add(msg.value);
         _userDeposits[msg.sender] = userDeposit.add(msg.value);
+        emit BuyTokens(msg.sender, msg.value);
     }
 
     // Admin functions
