@@ -9,6 +9,7 @@ contract SwapContract is Ownable, Whitelisted{
     uint64 public startTime;
     uint64 public endTime;
     bool public whitelist;
+    bool public isFeatured;
     Vesting.Token public token;
     uint  public minSwapAmount;
     uint public maxSwapAmount;
@@ -35,7 +36,8 @@ contract SwapContract is Ownable, Whitelisted{
     Vesting.Token memory _token,
     bool _whitelist,
     uint _totalDepositPerUser,
-    Vesting.VestingConfig memory _vestingConfig
+    Vesting.VestingConfig memory _vestingConfig,
+    bool _isFeatured
     )
     {
         token = _token;
@@ -48,6 +50,7 @@ contract SwapContract is Ownable, Whitelisted{
         totalDeposits = _totalDeposit;
         totalDepositPerUser = _totalDepositPerUser;
         vestingConfig = _vestingConfig;
+        isFeatured = _isFeatured;
     }
 
     /// @dev We are tracking how much eth(in wei) each address has deposited
@@ -109,6 +112,11 @@ contract SwapContract is Ownable, Whitelisted{
     function updateVestingConfig(Vesting.VestingConfig memory vestingOptions) external onlyOwner{
         require(startTime > currentTime(), "The pool is already active");
         vestingConfig = vestingOptions;
+    }
+
+    /// @param _isFeatured - is this crowdSale featured
+    function setFeatured(bool _isFeatured) external onlyOwner {
+        isFeatured = _isFeatured;
     }
 
     // Read functions

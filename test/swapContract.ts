@@ -24,7 +24,7 @@ describe("SwapContract", function () {
     let startDate = Math.round((date.setDate((date.getDate() + start)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() + end)) /1000));
     return await Swap.deploy(startDate, endDate, minPurcValue, 
-    ethers.utils.parseEther("5"), totalDeposit, 100, {tokenID: 1, decimals: 5}, whitelist, totalDepositPerUser, vesting);
+    ethers.utils.parseEther("5"), totalDeposit, 100, {tokenID: 1, decimals: 5}, whitelist, totalDepositPerUser, vesting, true);
   }
 
   before(async () => {
@@ -226,7 +226,7 @@ describe("SwapContract", function () {
     const endDate = Math.round((date.setDate((date.getDate() +2)) /1000));
 
     const swap = await Swap.deploy(startDate, endDate, 2, 5, ethers.utils.parseEther("10"), 
-    100, {tokenID: 1, decimals: 5}, false, ethers.utils.parseEther("1000"), {startTime: 7,unlockInterval: 30, percentageToMint: 10});
+    100, {tokenID: 1, decimals: 5}, false, ethers.utils.parseEther("1000"), {startTime: 7,unlockInterval: 30, percentageToMint: 10}, true);
 
     let startTimeValue = await swap.startTime()
     startTimeValue = startTimeValue.toNumber()
@@ -299,6 +299,21 @@ describe("SwapContract", function () {
 
     expect(swapPrice).to.equal(500);
   });
+
+  it("Should successfully change isFeatured option", async function() {
+    const swap = await deploySwapContract(5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
+    false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
+    let isFeatured = await swap.isFeatured();
+
+    expect(isFeatured).to.be.true;
+
+    await swap.setFeatured(false);
+    isFeatured = await swap.isFeatured();
+
+    expect(isFeatured).to.be.false;
+  });
+
+
   it("Should successfully update vesting config", async function() {
     const swap = await deploySwapContract(5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"), 
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
@@ -333,7 +348,8 @@ describe("SwapContract", function () {
     const startDate = Math.round((date.setDate((date.getDate() - 5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() + 10)) /1000));
 
-    const swap = await Swap.deploy(startDate, endDate, 2, 5, 10, 100, {tokenID: 1, decimals: 5}, false, 1000, {startTime: 7,unlockInterval: 30, percentageToMint: 10});
+    const swap = await Swap.deploy(startDate, endDate, 2, 5, 10, 100, {tokenID: 1, decimals: 5}, false, 1000, 
+    {startTime: 7,unlockInterval: 30, percentageToMint: 10}, true);
 
     const swapContract = (await ethers.getContractAt(
       "SwapContract",
@@ -388,8 +404,6 @@ describe("SwapContract", function () {
       "VM Exception while processing transaction: revert Ownable: caller is not the owner"
     );
   });
-
-
 
   // test claiming tokens
   it("should successfuly claim user tokens", async function(){
