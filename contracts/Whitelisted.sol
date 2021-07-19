@@ -5,21 +5,19 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract Whitelisted is Ownable{
     mapping (address => bool) internal whitelisted;
 
-    /// @param userAddress array of user addresses
-    function addToWhitelist(address[] memory userAddress) external onlyOwner{
-        for (uint i = 0; i< userAddress.length; i++) {
-            whitelisted[userAddress[i]] = true;    
-        }         
+    /// @param ethAddress users ethereum account address
+    function addToWhitelist(address ethAddress) external onlyOwner{
+        whitelisted[ethAddress] = true;
     }
 
-    /// @param user user address that should be removed from the whitelist
-    function removeFromWhitelist(address user) external onlyOwner{
-        delete whitelisted[user];
+    /// @param ethAddress users ethereum account address
+    function removeFromWhitelist(address ethAddress) external onlyOwner{
+        delete whitelisted[ethAddress];
     }
 
-    /// @param user user address
+    /// @param ethAddress users ethereum account address
     /// @return true if the user is whitelisted, otherwise false
-    function isWhitelisted(address user) view external returns(bool){
-        return whitelisted[user];
+    function isWhitelisted(address ethAddress) view external returns(bool){
+        return whitelisted[ethAddress];
     }
 }

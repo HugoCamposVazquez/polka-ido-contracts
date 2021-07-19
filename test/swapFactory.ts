@@ -1,4 +1,4 @@
-import { BigNumber, Signer } from "ethers";
+import { Signer } from "ethers";
 import { SwapFactory } from "../typechain/SwapFactory";
 import { ethers, deployments } from "hardhat";
 import { Deployment } from "hardhat-deploy/dist/types";
@@ -33,7 +33,7 @@ describe("Swap Factory", function () {
     const startDate = Math.round((date.setDate((date.getDate() -5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
     
-    const tx = await SwapFactoryOwner.createSwapContract(startDate, endDate, 2, 10, 10000, 100, 1, false, 1000, {start: 7,unlockInterval: 30, percentageToMint: 10});
+    const tx = await SwapFactoryOwner.createSwapContract(startDate, endDate, 2, 10, 10000, 100, {tokenID: 1, decimals: 0}, false, 1000, {startTime: 7,unlockInterval: 30, percentageToMint: 10});
     
     const txReceipt = await tx.wait(1);
     expect(txReceipt.events![1].event).to.equal("SavePool");
@@ -46,7 +46,7 @@ describe("Swap Factory", function () {
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
 
     await expect(
-        swapFactory.createSwapContract(startDate, endDate, 2, 10, 10000, 100, 1, false, 1000, {start: 7,unlockInterval: 30, percentageToMint: 10})
+        swapFactory.createSwapContract(startDate, endDate, 2, 10, 10000, 100, {tokenID: 1, decimals: 0}, false, 1000, {startTime: 7,unlockInterval: 30, percentageToMint: 10})
       ).to.be.rejectedWith(
         "VM Exception while processing transaction: revert Ownable: caller is not the owner"
       );
