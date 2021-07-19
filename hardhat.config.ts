@@ -17,7 +17,7 @@ const config: HardhatUserConfig = {
     version: "0.8.1",
     settings: {
       optimizer: {
-        enabled: false
+        enabled: process.env.OPTIMIZER_ENABLED === "true",
       }
     }
   },

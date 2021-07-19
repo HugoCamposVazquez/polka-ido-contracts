@@ -1,22 +1,15 @@
-// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.1;
-import "./SwapContract.sol";
+
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-library Vesting {
-    struct VestingConfig {
-        uint32 startTime; // in secodns
-        uint32 unlockInterval; // in seconds
-        uint8 percentageToMint;
-    }
-    struct Token {
-        uint32 tokenID;
-        uint8 decimals;
-    }
-}
+import "./VestingLib.sol";
+import "./SaleStructs.sol";
+import "./SwapContract.sol";
+
+
 contract SwapFactory is Ownable{
 
-    event SavePool(SwapContract tokenSaleAddress, Vesting.Token token, address senderAdd);
+    event SavePool(address tokenSaleAddress, Vesting.Token token, address senderAdd);
 
     function createSwapContract(
     uint64 _startTime,
@@ -25,12 +18,12 @@ contract SwapFactory is Ownable{
     uint _maxSwapAmount,
     uint _totalDeposit,
     uint _swapPrice,
-    Vesting.Token memory _token,
-    bool _whitelist,
     uint _totalDepositPerUser,
+    Vesting.Token memory _token,
+    SaleType.Options memory _options,
     Vesting.VestingConfig memory vestingConfig,
-    bool _isFeatured
-    ) public onlyOwner {
+    string memory _metadataURI
+    ) external onlyOwner {
 
         SwapContract s = new SwapContract(
             _startTime,
@@ -39,13 +32,13 @@ contract SwapFactory is Ownable{
             _maxSwapAmount,
             _totalDeposit,
             _swapPrice,
-            _token,
-            _whitelist,
             _totalDepositPerUser,
+            _token,
+            _options,
             vestingConfig,
-            _isFeatured
+            _metadataURI
             );
 
-        emit SavePool(s, _token, msg.sender);
+        emit SavePool(address(s), _token, msg.sender);
     }
 }

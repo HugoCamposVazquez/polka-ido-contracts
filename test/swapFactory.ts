@@ -10,7 +10,7 @@ describe("Swap Factory", function () {
     let SwapFactory: Deployment;
     let SwapFactoryOwner: SwapFactory
     let swapFactory: SwapFactory
-  
+
     before(async () => {
         signers = await ethers.getSigners();
         ({ SwapFactory } = await deployments.fixture());
@@ -32,23 +32,22 @@ describe("Swap Factory", function () {
     const date = new Date();
     const startDate = Math.round((date.setDate((date.getDate() -5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
-    
+
     const tx = await SwapFactoryOwner.createSwapContract(startDate, endDate, 2, 10, 10000, 100,
-      {tokenID: 1, decimals: 0}, false, 1000, {startTime: 7,unlockInterval: 30, percentageToMint: 10}, true);
-    
+        1000, {tokenID: 1, decimals: 0},  {whitelist: false, isFeatured: true}, {startTime: 7,unlockInterval: 30, percentageToMint: 10}, "http://ipfsLink.com");
+
     const txReceipt = await tx.wait(1);
     expect(txReceipt.events![1].event).to.equal("SavePool");
   });
 
   it("Should fail if createSwapContract is called with invalid owner", async function () {
-    
+
     const date = new Date();
     const startDate = Math.round((date.setDate((date.getDate() -5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
 
-    await expect(
-        swapFactory.createSwapContract(startDate, endDate, 2, 10, 10000, 100, {tokenID: 1, decimals: 0}, false, 1000, 
-          {startTime: 7,unlockInterval: 30, percentageToMint: 10}, true)
+    await expect(swapFactory.createSwapContract(startDate, endDate, 2, 10, 10000, 100,
+            1000, {tokenID: 1, decimals: 0},  {whitelist: false, isFeatured: true}, {startTime: 7,unlockInterval: 30, percentageToMint: 10}, "http://ipfsLink.com")
       ).to.be.rejectedWith(
         "VM Exception while processing transaction: revert Ownable: caller is not the owner"
       );

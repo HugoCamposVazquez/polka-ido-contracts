@@ -1,31 +1,35 @@
-// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.1;
-import "./Whitelisted.sol";
+
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "./SwapFactory.sol";
-contract SwapContract is Ownable, Whitelisted{
+
+import "./Whitelisted.sol";
+import "./VestingLib.sol";
+import "./SaleStructs.sol";
+
+contract SwapContract is Whitelisted {
     using SafeMath for uint;
 
     uint64 public startTime;
     uint64 public endTime;
     bool public whitelist;
     bool public isFeatured;
-    Vesting.Token public token;
-    uint  public minSwapAmount;
+    uint public minSwapAmount;
     uint public maxSwapAmount;
     uint public swapPrice;
     uint public totalDeposits;
     uint public totalDepositPerUser;
     uint public currentDeposit;
+    Vesting.Token public token;
+    string public metadataURI;
+
+    // total how much user has claimed
+    mapping (address => uint) private tokensMinted;
+    mapping (address => uint) private _userDeposits;
+
+    Vesting.VestingConfig public vestingConfig;
 
     event Claim(string statemintReceiver, uint amount, Vesting.Token token);
     event BuyTokens(address user, uint amount);
-
-    // total how much user has claimed
-    mapping (address =>  uint) private tokensMinted;
-    mapping (address =>  uint) private _userDeposits;
-
-    Vesting.VestingConfig public vestingConfig;
 
     constructor(
     uint64 _startTime,
@@ -34,11 +38,11 @@ contract SwapContract is Ownable, Whitelisted{
     uint _maxSwapAmount,
     uint _totalDeposit,
     uint _swapPrice,
-    Vesting.Token memory _token,
-    bool _whitelist,
     uint _totalDepositPerUser,
+    Vesting.Token memory _token,
+    SaleType.Options memory _options,
     Vesting.VestingConfig memory _vestingConfig,
-    bool _isFeatured
+    string memory _metadataURI
     )
     {
         token = _token;
@@ -47,11 +51,12 @@ contract SwapContract is Ownable, Whitelisted{
         minSwapAmount = _minSwapAmount;
         maxSwapAmount = _maxSwapAmount;
         swapPrice = _swapPrice;
-        whitelist = _whitelist;
-        totalDeposits = _totalDeposit;
         totalDepositPerUser = _totalDepositPerUser;
+        whitelist = _options.whitelist;
+        totalDeposits = _totalDeposit;
         vestingConfig = _vestingConfig;
-        isFeatured = _isFeatured;
+        isFeatured = _options.isFeatured;
+        metadataURI = _metadataURI;
     }
 
     /// @dev We are tracking how much eth(in wei) each address has deposited
@@ -119,6 +124,11 @@ contract SwapContract is Ownable, Whitelisted{
     /// @param _isFeatured - is this crowdSale featured
     function setFeatured(bool _isFeatured) external onlyOwner {
         isFeatured = _isFeatured;
+    }
+
+    /// @param _metadataURI - link on IPFS
+    function setMetadataURI(string memory _metadataURI) external onlyOwner {
+        metadataURI = _metadataURI;
     }
 
     // Read functions
