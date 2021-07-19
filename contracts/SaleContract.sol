@@ -6,16 +6,16 @@ import "./Whitelisted.sol";
 import "./VestingLib.sol";
 import "./SaleStructs.sol";
 
-contract SwapContract is Whitelisted {
+contract SaleContract is Whitelisted {
     using SafeMath for uint;
 
     uint64 public startTime;
     uint64 public endTime;
     bool public whitelist;
     bool public isFeatured;
-    uint public minSwapAmount;
-    uint public maxSwapAmount;
-    uint public swapPrice;
+    uint public minDepositAmount;
+    uint public maxDepositAmount;
+    uint public salePrice;
     uint public totalDeposits;
     uint public totalDepositPerUser;
     uint public currentDeposit;
@@ -34,10 +34,10 @@ contract SwapContract is Whitelisted {
     constructor(
     uint64 _startTime,
     uint64 _endTime,
-    uint _minSwapAmount,
-    uint _maxSwapAmount,
+    uint _minDepositAmount,
+    uint _maxDepositAmount,
     uint _totalDeposit,
-    uint _swapPrice,
+    uint _salePrice,
     uint _totalDepositPerUser,
     Vesting.Token memory _token,
     SaleType.Options memory _options,
@@ -48,9 +48,9 @@ contract SwapContract is Whitelisted {
         token = _token;
         startTime = _startTime;
         endTime = _endTime;
-        minSwapAmount = _minSwapAmount;
-        maxSwapAmount = _maxSwapAmount;
-        swapPrice = _swapPrice;
+        minDepositAmount = _minDepositAmount;
+        maxDepositAmount = _maxDepositAmount;
+        salePrice = _salePrice;
         totalDepositPerUser = _totalDepositPerUser;
         whitelist = _options.whitelist;
         totalDeposits = _totalDeposit;
@@ -63,8 +63,8 @@ contract SwapContract is Whitelisted {
     receive() external payable {
         // calculate how much ether the sender has already deposit
         uint userDeposit = _userDeposits[msg.sender];
-        require(msg.value >= minSwapAmount && msg.value <= maxSwapAmount, "Invalid deposit amount");
-        require(currentTime() <= endTime && currentTime() >= startTime, "The pool is not active");
+        require(msg.value >= minDepositAmount && msg.value <= maxDepositAmount, "Invalid deposit amount");
+        require(currentTime() <= endTime && currentTime() >= startTime, "Sale is not active");
         require(currentDeposit.add(msg.value) <= totalDeposits, "Not enough tokens to sell");
         require(userDeposit.add(msg.value) <= totalDepositPerUser, "You reached the token limit");
 
@@ -84,40 +84,40 @@ contract SwapContract is Whitelisted {
         whitelist = isWhitelistable;
     }
 
-    /// @dev admin user is not alowed to update start and end date when the pool is already active
+    /// @dev admin user is not alowed to update start and end date when a sale is already active
     /// @param start unix timestamp when the token sale for the project starts
     /// @param end unix timestamp when the token sale for the project ends
-    function setTimeDates(uint64 start, uint64 end)external onlyOwner{
-        require(startTime > currentTime(), "The pool is already active");
+    function setTimeDates(uint64 start, uint64 end) external onlyOwner{
+        require(startTime > currentTime(), "Sale is already active");
         startTime = start;
         endTime = end;
     }
 
     /// @param minAmount minimal amount (in wei) of eth for which user can buy the project tokens
     /// @param maxAmount maximal amount(in wei) of eth for which user can buy the project tokens
-    function setLimits( uint minAmount, uint maxAmount)external onlyOwner{
-        minSwapAmount = minAmount;
-        maxSwapAmount = maxAmount;
+    function setLimits( uint minAmount, uint maxAmount) external onlyOwner{
+        minDepositAmount = minAmount;
+        maxDepositAmount = maxAmount;
     }
 
-    /// @dev admin user is not allowed to update the token id after the token sale is already active
+    /// @dev admin user is not allowed to update the token id after a token sale is already active
     /// @param _token statemint token info
     function setToken(Vesting.Token memory _token) external onlyOwner{
-        require(startTime > currentTime(), "The pool is already active");
+        require(startTime > currentTime(), "Sale is already active");
         token = _token;
     }
 
     /// @dev admin user is not allowed to update the token price after the token sale is already active
     /// @param price how much project tokens can user purchase for 1 ETH
-    function setSwapPrice(uint price)external onlyOwner{
-        require(startTime > currentTime(), "The pool is already active");
-        swapPrice = price;
+    function setSalePrice(uint price)external onlyOwner{
+        require(startTime > currentTime(), "Sale is already active");
+        salePrice = price;
     }
 
     /// @dev admin user is not allowed to update the token id after the token sale is already active
     /// @param vestingOptions vesting configuration
     function updateVestingConfig(Vesting.VestingConfig memory vestingOptions) external onlyOwner{
-        require(startTime > currentTime(), "The pool is already active");
+        require(startTime > currentTime(), "Sale is already active");
         vestingConfig = vestingOptions;
     }
 
@@ -133,11 +133,11 @@ contract SwapContract is Whitelisted {
 
     // Read functions
 
-    /// @dev dividing user deposit(in wei) by 1 eth because swapPrice is number of tokens that user can buy for 1eth
+    /// @dev dividing user deposit(in wei) by 1 eth because salePrice is number of tokens that user can buy for 1eth
     /// @param user The user eth address
     /// @return How much project token has the user bought
     function getUserTotalTokens(address user) view public returns(uint) {
-        return _userDeposits[user].mul(swapPrice).div(1 ether);
+        return _userDeposits[user].mul(salePrice).div(1 ether);
     }
 
     /// @param statemintReceiver Statemint address where the tokens will be minted
@@ -170,6 +170,6 @@ contract SwapContract is Whitelisted {
     }
 
     function currentTime() public view returns(uint256) {
-    return block.timestamp;
+        return block.timestamp;
     }
 }
