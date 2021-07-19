@@ -4,14 +4,14 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "./VestingLib.sol";
 import "./SaleStructs.sol";
-import "./SwapContract.sol";
+import "./SaleContract.sol";
 
 
-contract SwapFactory is Ownable{
+contract SaleContractFactory is Ownable{
 
     event SavePool(address tokenSaleAddress, Vesting.Token token, address senderAdd);
 
-    function createSwapContract(
+    function createSaleContract(
     uint64 _startTime,
     uint64 _endTime,
     uint _minSwapAmount,
@@ -25,7 +25,7 @@ contract SwapFactory is Ownable{
     string memory _metadataURI
     ) external onlyOwner {
 
-        SwapContract s = new SwapContract(
+        SaleContract s = new SaleContract(
             _startTime,
             _endTime,
             _minSwapAmount,
