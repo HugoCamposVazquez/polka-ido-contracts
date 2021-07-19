@@ -13,8 +13,8 @@ contract SaleContract is Whitelisted {
     uint64 public endTime;
     bool public whitelist;
     bool public isFeatured;
-    uint public minSaleAmount;
-    uint public maxSaleAmount;
+    uint public minDepositAmount;
+    uint public maxDepositAmount;
     uint public salePrice;
     uint public totalDeposits;
     uint public totalDepositPerUser;
@@ -34,8 +34,8 @@ contract SaleContract is Whitelisted {
     constructor(
     uint64 _startTime,
     uint64 _endTime,
-    uint _minSaleAmount,
-    uint _maxSaleAmount,
+    uint _minDepositAmount,
+    uint _maxDepositAmount,
     uint _totalDeposit,
     uint _salePrice,
     uint _totalDepositPerUser,
@@ -48,8 +48,8 @@ contract SaleContract is Whitelisted {
         token = _token;
         startTime = _startTime;
         endTime = _endTime;
-        minSaleAmount = _minSaleAmount;
-        maxSaleAmount = _maxSaleAmount;
+        minDepositAmount = _minDepositAmount;
+        maxDepositAmount = _maxDepositAmount;
         salePrice = _salePrice;
         totalDepositPerUser = _totalDepositPerUser;
         whitelist = _options.whitelist;
@@ -63,7 +63,7 @@ contract SaleContract is Whitelisted {
     receive() external payable {
         // calculate how much ether the sender has already deposit
         uint userDeposit = _userDeposits[msg.sender];
-        require(msg.value >= minSaleAmount && msg.value <= maxSaleAmount, "Invalid deposit amount");
+        require(msg.value >= minDepositAmount && msg.value <= maxDepositAmount, "Invalid deposit amount");
         require(currentTime() <= endTime && currentTime() >= startTime, "The pool is not active");
         require(currentDeposit.add(msg.value) <= totalDeposits, "Not enough tokens to sell");
         require(userDeposit.add(msg.value) <= totalDepositPerUser, "You reached the token limit");
@@ -96,8 +96,8 @@ contract SaleContract is Whitelisted {
     /// @param minAmount minimal amount (in wei) of eth for which user can buy the project tokens
     /// @param maxAmount maximal amount(in wei) of eth for which user can buy the project tokens
     function setLimits( uint minAmount, uint maxAmount)external onlyOwner{
-        minSaleAmount = minAmount;
-        maxSaleAmount = maxAmount;
+        minDepositAmount = minAmount;
+        maxDepositAmount = maxAmount;
     }
 
     /// @dev admin user is not allowed to update the token id after the token sale is already active
@@ -170,6 +170,6 @@ contract SaleContract is Whitelisted {
     }
 
     function currentTime() public view returns(uint256) {
-    return block.timestamp;
+        return block.timestamp;
     }
 }

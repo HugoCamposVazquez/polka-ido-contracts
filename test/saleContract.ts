@@ -264,14 +264,14 @@ describe("SaleContract", function () {
   it("Should successfully change min and max sale amount", async function() {
     const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
-    let minSale = await sale.minSaleAmount();
-    let maxSale = await sale.maxSaleAmount();
+    let minSale = await sale.minDepositAmount();
+    let maxSale = await sale.maxDepositAmount();
     expect(minSale).to.deep.equal(ethers.utils.parseEther("2"));
     expect(maxSale).to.deep.equal(ethers.utils.parseEther("5"));
 
     await sale.setLimits(ethers.utils.parseEther("1"), ethers.utils.parseEther("10"));
-    minSale = await sale.minSaleAmount();
-    maxSale = await sale.maxSaleAmount();
+    minSale = await sale.minDepositAmount();
+    maxSale = await sale.maxDepositAmount();
     expect(minSale).to.deep.equal(ethers.utils.parseEther("1"));
     expect(maxSale).to.deep.equal(ethers.utils.parseEther("10"));
   });

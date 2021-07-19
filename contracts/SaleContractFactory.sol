@@ -9,27 +9,27 @@ import "./SaleContract.sol";
 
 contract SaleContractFactory is Ownable{
 
-    event SavePool(address tokenSaleAddress, Vesting.Token token, address senderAdd);
+    event CreatedSaleContract(address tokenSaleAddress, Vesting.Token token, address senderAdd);
 
     function createSaleContract(
-    uint64 _startTime,
-    uint64 _endTime,
-    uint _minSwapAmount,
-    uint _maxSwapAmount,
-    uint _totalDeposit,
-    uint _swapPrice,
-    uint _totalDepositPerUser,
-    Vesting.Token memory _token,
-    SaleType.Options memory _options,
-    Vesting.VestingConfig memory vestingConfig,
-    string memory _metadataURI
+        uint64 _startTime,
+        uint64 _endTime,
+        uint _minDepositAmount,
+        uint _maxDepositAmount,
+        uint _totalDeposit,
+        uint _swapPrice,
+        uint _totalDepositPerUser,
+        Vesting.Token memory _token,
+        SaleType.Options memory _options,
+        Vesting.VestingConfig memory vestingConfig,
+        string memory _metadataURI
     ) external onlyOwner {
 
         SaleContract s = new SaleContract(
             _startTime,
             _endTime,
-            _minSwapAmount,
-            _maxSwapAmount,
+            _minDepositAmount,
+            _maxDepositAmount,
             _totalDeposit,
             _swapPrice,
             _totalDepositPerUser,
@@ -39,6 +39,6 @@ contract SaleContractFactory is Ownable{
             _metadataURI
             );
 
-        emit SavePool(address(s), _token, msg.sender);
+        emit CreatedSaleContract(address(s), _token, msg.sender);
     }
 }

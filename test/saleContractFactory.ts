@@ -37,7 +37,7 @@ describe("Sale Factory", function () {
         1000, {tokenID: 1, decimals: 0},  {whitelist: false, isFeatured: true}, {startTime: 7,unlockInterval: 30, percentageToMint: 10}, "http://ipfsLink.com");
 
     const txReceipt = await tx.wait(1);
-    expect(txReceipt.events![1].event).to.equal("SavePool");
+    expect(txReceipt.events![1].event).to.equal("CreatedSaleContract");
   });
 
   it("Should fail if createSaleContract is called with invalid owner", async function () {
