@@ -19,14 +19,16 @@ contract SwapContract is Ownable, Whitelisted{
     uint public currentDeposit;
     string public metadataURI;
 
-    event Claim(string substrateAdd, uint amount, Vesting.Token token);
+    event Claim(string statemintReceiver, uint amount, Vesting.Token token);
+    event BuyTokens(address user, uint amount);
 
+    // total how much user has claimed
     mapping (address =>  uint) private tokensMinted;
     mapping (address =>  uint) private _userDeposits;
 
     Vesting.VestingConfig public vestingConfig;
 
-    constructor(    
+    constructor(
     uint64 _startTime,
     uint64 _endTime,
     uint _minSwapAmount,
@@ -70,6 +72,7 @@ contract SwapContract is Ownable, Whitelisted{
 
         currentDeposit = currentDeposit.add(msg.value);
         _userDeposits[msg.sender] = userDeposit.add(msg.value);
+        emit BuyTokens(msg.sender, msg.value);
     }
 
     // Admin functions
@@ -128,15 +131,15 @@ contract SwapContract is Ownable, Whitelisted{
 
     // Read functions
 
-    /// @dev deviding user deposit(in wei) by 1 eth becouse swapPrice is number of tokens that user can buy for 1eth
-    /// @param add The user eth address
+    /// @dev dividing user deposit(in wei) by 1 eth because swapPrice is number of tokens that user can buy for 1eth
+    /// @param user The user eth address
     /// @return How much project token has the user bought
-    function getUserTotalTokens(address add) view public returns(uint) {
-        return _userDeposits[add].mul(swapPrice).div(1 ether);
+    function getUserTotalTokens(address user) view public returns(uint) {
+        return _userDeposits[user].mul(swapPrice).div(1 ether);
     }
 
-    /// @param substrateAdd Statemint addres where the tokens will be minted
-    function claimVestedTokens(string memory substrateAdd) external {
+    /// @param statemintReceiver Statemint address where the tokens will be minted
+    function claimVestedTokens(string memory statemintReceiver) external {
         require (currentTime() >= vestingConfig.startTime, "Vesting didn't started yet");
         uint elapsedTime = currentTime().sub(vestingConfig.startTime);
         uint userTotalTokens = getUserTotalTokens(msg.sender);
@@ -149,21 +152,18 @@ contract SwapContract is Ownable, Whitelisted{
 
         require(userMintedTokens < tokensToMintInInterval, "You have no tokens to claim");
 
-        // if vesting ended mint all remaining tokens
-        if(tokensToMintInInterval >= userTotalTokens && 
+        // if vesting ended claim all remaining tokens
+        if(tokensToMintInInterval >= userTotalTokens &&
         userMintedTokens < userTotalTokens) {
-            emit Claim(substrateAdd, userTotalTokens
-                .sub(userMintedTokens), token);
-
-            tokensMinted[msg.sender] = userMintedTokens
-                .add(userTotalTokens.sub(userMintedTokens));
+            uint tokensToClaim = userTotalTokens.sub(userMintedTokens);
+            emit Claim(statemintReceiver, tokensToClaim, token);
+            tokensMinted[msg.sender] = userMintedTokens.add(tokensToClaim);
         }
+        // vesting ongoing, only claim for the interval
         else if(userMintedTokens < userTotalTokens){
-            emit Claim(substrateAdd, tokensToMintInInterval
-                .sub(userMintedTokens), token);
-                
-            tokensMinted[msg.sender] = userMintedTokens
-                .add(tokensToMintInInterval.sub(userMintedTokens));
+            uint tokensToClaim = tokensToMintInInterval.sub(userMintedTokens);
+            emit Claim(statemintReceiver, tokensToClaim, token);
+            tokensMinted[msg.sender] = userMintedTokens.add(tokensToClaim);
         }
     }
 
