@@ -18,9 +18,9 @@ contract SwapFactory is Ownable{
     uint _maxSwapAmount,
     uint _totalDeposit,
     uint _swapPrice,
+    uint _totalDepositPerUser,
     Vesting.Token memory _token,
     SaleType.Options memory _options,
-    uint _totalDepositPerUser,
     Vesting.VestingConfig memory vestingConfig,
     string memory _metadataURI
     ) external onlyOwner {
@@ -32,9 +32,9 @@ contract SwapFactory is Ownable{
             _maxSwapAmount,
             _totalDeposit,
             _swapPrice,
+            _totalDepositPerUser,
             _token,
             _options,
-            _totalDepositPerUser,
             vestingConfig,
             _metadataURI
             );

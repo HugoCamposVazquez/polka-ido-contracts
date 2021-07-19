@@ -38,9 +38,9 @@ contract SwapContract is Whitelisted {
     uint _maxSwapAmount,
     uint _totalDeposit,
     uint _swapPrice,
+    uint _totalDepositPerUser,
     Vesting.Token memory _token,
     SaleType.Options memory _options,
-    uint _totalDepositPerUser,
     Vesting.VestingConfig memory _vestingConfig,
     string memory _metadataURI
     )
@@ -51,9 +51,9 @@ contract SwapContract is Whitelisted {
         minSwapAmount = _minSwapAmount;
         maxSwapAmount = _maxSwapAmount;
         swapPrice = _swapPrice;
+        totalDepositPerUser = _totalDepositPerUser;
         whitelist = _options.whitelist;
         totalDeposits = _totalDeposit;
-        totalDepositPerUser = _totalDepositPerUser;
         vestingConfig = _vestingConfig;
         isFeatured = _options.isFeatured;
         metadataURI = _metadataURI;
