@@ -64,7 +64,7 @@ contract SaleContract is Whitelisted {
         // calculate how much ether the sender has already deposit
         uint userDeposit = _userDeposits[msg.sender];
         require(msg.value >= minDepositAmount && msg.value <= maxDepositAmount, "Invalid deposit amount");
-        require(currentTime() <= endTime && currentTime() >= startTime, "The pool is not active");
+        require(currentTime() <= endTime && currentTime() >= startTime, "Sale is not active");
         require(currentDeposit.add(msg.value) <= totalDeposits, "Not enough tokens to sell");
         require(userDeposit.add(msg.value) <= totalDepositPerUser, "You reached the token limit");
 
@@ -84,40 +84,40 @@ contract SaleContract is Whitelisted {
         whitelist = isWhitelistable;
     }
 
-    /// @dev admin user is not alowed to update start and end date when the pool is already active
+    /// @dev admin user is not alowed to update start and end date when a sale is already active
     /// @param start unix timestamp when the token sale for the project starts
     /// @param end unix timestamp when the token sale for the project ends
-    function setTimeDates(uint64 start, uint64 end)external onlyOwner{
-        require(startTime > currentTime(), "The pool is already active");
+    function setTimeDates(uint64 start, uint64 end) external onlyOwner{
+        require(startTime > currentTime(), "Sale is already active");
         startTime = start;
         endTime = end;
     }
 
     /// @param minAmount minimal amount (in wei) of eth for which user can buy the project tokens
     /// @param maxAmount maximal amount(in wei) of eth for which user can buy the project tokens
-    function setLimits( uint minAmount, uint maxAmount)external onlyOwner{
+    function setLimits( uint minAmount, uint maxAmount) external onlyOwner{
         minDepositAmount = minAmount;
         maxDepositAmount = maxAmount;
     }
 
-    /// @dev admin user is not allowed to update the token id after the token sale is already active
+    /// @dev admin user is not allowed to update the token id after a token sale is already active
     /// @param _token statemint token info
     function setToken(Vesting.Token memory _token) external onlyOwner{
-        require(startTime > currentTime(), "The pool is already active");
+        require(startTime > currentTime(), "Sale is already active");
         token = _token;
     }
 
     /// @dev admin user is not allowed to update the token price after the token sale is already active
     /// @param price how much project tokens can user purchase for 1 ETH
     function setSalePrice(uint price)external onlyOwner{
-        require(startTime > currentTime(), "The pool is already active");
+        require(startTime > currentTime(), "Sale is already active");
         salePrice = price;
     }
 
     /// @dev admin user is not allowed to update the token id after the token sale is already active
     /// @param vestingOptions vesting configuration
     function updateVestingConfig(Vesting.VestingConfig memory vestingOptions) external onlyOwner{
-        require(startTime > currentTime(), "The pool is already active");
+        require(startTime > currentTime(), "Sale is already active");
         vestingConfig = vestingOptions;
     }
 

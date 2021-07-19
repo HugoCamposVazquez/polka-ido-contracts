@@ -83,10 +83,10 @@ describe("SaleContract", function () {
         to: sale.address,
         value: ethers.utils.parseEther("3"),
       })
-    ).to.be.rejectedWith("The pool is not active");
+    ).to.be.rejectedWith("Sale is not active");
   });
 
-  it("Should fail if the pool token sale did not started yet", async function() {
+  it("Should fail if a sale did not started yet", async function() {
     const sale = await deploySaleContract(1, 4, ethers.utils.parseEther("2"), ethers.utils.parseEther("10000"),
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
@@ -96,7 +96,7 @@ describe("SaleContract", function () {
         to: sale.address,
         value: ethers.utils.parseEther("3"),
       })
-    ).to.be.rejectedWith("The pool is not active");
+    ).to.be.rejectedWith("Sale is not active");
   });
 
 
@@ -210,7 +210,6 @@ describe("SaleContract", function () {
       })
     ).to.be.rejectedWith("VM Exception while processing transaction: revert Your address is not whitelisted");
 
-    // set the pool to whitelist: false
     await sale.setWhitelisting(false);
     // purchase tokens whit user that is not added to the whitelist
     await signers[0].sendTransaction(
@@ -223,7 +222,7 @@ describe("SaleContract", function () {
     expect(user0Balance.toString()).to.equal("200");
   });
 
-  it("Should revert when trying to update startTime/endTime if pool already active", async function() {
+  it("Should revert when trying to update startTime/endTime if sale already active", async function() {
     const date = new Date();
     const startDate = Math.round((date.setDate((date.getDate() -5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
@@ -231,10 +230,10 @@ describe("SaleContract", function () {
     const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
     await expect(sale.setTimeDates(startDate, endDate))
-    .to.be.rejectedWith("VM Exception while processing transaction: revert The pool is already active");
+    .to.be.rejectedWith("VM Exception while processing transaction: revert Sale is already active");
   });
 
-  it("Should successfully update startTime/endTime of the pool", async function() {
+  it("Should successfully update startTime/endTime of a sale", async function() {
     const date = new Date();
     let startDate = Math.round((date.setDate((date.getDate() +1)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() +2)) /1000));
@@ -289,14 +288,14 @@ describe("SaleContract", function () {
     expect(token[1]).to.be.equal(3);
   });
 
-  it("Should revert when trying to update tokenAddress if pool already active", async function() {
+  it("Should revert when trying to update tokenAddress if sale already active", async function() {
     const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
     await expect(
       sale.setToken({tokenID: 2, decimals: 3})
     )
-    .to.be.rejectedWith("VM Exception while processing transaction: revert The pool is already active");
+    .to.be.rejectedWith("VM Exception while processing transaction: revert Sale is already active");
   });
 
   it("Should successfully change sale price", async function() {
@@ -349,22 +348,22 @@ describe("SaleContract", function () {
     expect(vestingOptions).to.be.deep.equal([now + 10, 360, 15]);
   });
 
-  it("Should revert when trying to update vesting config if pool already active", async function() {
+  it("Should revert when trying to update vesting config if sale already active", async function() {
     const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
     await expect(
       sale.updateVestingConfig({startTime: 10,unlockInterval: 60, percentageToMint: 25})
     )
-    .to.be.rejectedWith("VM Exception while processing transaction: revert The pool is already active");
+    .to.be.rejectedWith("VM Exception while processing transaction: revert Sale is already active");
   });
 
-  it("Should revert when trying to update sale price if pool already active", async function() {
+  it("Should revert when trying to update sale price if sale already active", async function() {
     const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
     await expect(sale.setSalePrice(500))
-    .to.be.rejectedWith("VM Exception while processing transaction: revert The pool is already active");
+    .to.be.rejectedWith("VM Exception while processing transaction: revert Sale is already active");
   });
 
   it("Should revert when non owner trying to update token sale", async function() {
