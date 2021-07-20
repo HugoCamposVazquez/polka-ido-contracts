@@ -49,7 +49,7 @@ describe("Sale Factory", function () {
     await expect(saleFactory.createSaleContract(startDate, endDate, 2, 10, 10000, 100,
             1000, {tokenID: 1, decimals: 0},  {whitelist: false, isFeatured: true}, {startTime: 7,unlockInterval: 30, percentageToMint: 10}, "http://ipfsLink.com")
       ).to.be.rejectedWith(
-        "VM Exception while processing transaction: revert Ownable: caller is not the owner"
+        "caller is not the owner"
       );
   });
 });

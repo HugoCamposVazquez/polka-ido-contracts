@@ -100,7 +100,7 @@ jobs:
           uses: docker/build-push-action@v1
           with:
             username: ${{ github.actor }}
-            password: ${{ secrets.CR_WRITE_PAT }}
+            password: ${{ secrets.GITHUB_TOKEN }}
             registry: ghcr.io
             repository: nodefactoryio/ryu-contracts
             tags: latest,${{ needs.tag.outputs.tag }}
