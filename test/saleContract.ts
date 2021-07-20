@@ -58,7 +58,7 @@ describe("SaleContract", function () {
         to: sale.address,
         value: ethers.utils.parseEther("1"),
       })
-    ).to.be.rejectedWith("VM Exception while processing transaction: revert Invalid deposit amount");
+    ).to.be.rejectedWith("Invalid deposit amount");
   });
 
   it("Should fail if too much ether provided", async function() {
@@ -71,7 +71,7 @@ describe("SaleContract", function () {
         to: sale.address,
         value: ethers.utils.parseEther("11"),
       })
-    ).to.be.rejectedWith("VM Exception while processing transaction: revert Invalid deposit amount");
+    ).to.be.rejectedWith("Invalid deposit amount");
   });
 
   it("Should fail if the token sale ended", async function() {
@@ -124,7 +124,7 @@ describe("SaleContract", function () {
         to: sale.address,
         value: ethers.utils.parseEther("3"),
       })
-    ).to.be.rejectedWith("VM Exception while processing transaction: revert Not enough tokens to sell");
+    ).to.be.rejectedWith("Not enough tokens to sell");
   });
 
   it("Should fail if you reached the token limit", async function() {
@@ -143,7 +143,7 @@ describe("SaleContract", function () {
         to: sale.address,
         value: ethers.utils.parseEther("3"),
       })
-    ).to.be.rejectedWith("VM Exception while processing transaction: revert You reached the token limit");
+    ).to.be.rejectedWith("You reached the token limit");
   });
 
   it("Should fail if user address is not whitelisted", async function() {
@@ -155,7 +155,7 @@ describe("SaleContract", function () {
         to: sale.address,
         value: ethers.utils.parseEther("3"),
       })
-    ).to.be.rejectedWith("VM Exception while processing transaction: revert Your address is not whitelisted");
+    ).to.be.rejectedWith("Your address is not whitelisted");
   });
 
   it("Should successfully buy tokens", async function() {
@@ -199,7 +199,7 @@ describe("SaleContract", function () {
           to: sale.address,
           value: ethers.utils.parseEther("2"),
         })
-    ).to.be.rejectedWith("VM Exception while processing transaction: revert Your address is not whitelisted");
+    ).to.be.rejectedWith("Your address is not whitelisted");
 
     // try to purchase the tokens with user that was never added to the whitelist
     await expect(
@@ -208,7 +208,7 @@ describe("SaleContract", function () {
         to: sale.address,
         value: ethers.utils.parseEther("2"),
       })
-    ).to.be.rejectedWith("VM Exception while processing transaction: revert Your address is not whitelisted");
+    ).to.be.rejectedWith("Your address is not whitelisted");
 
     await sale.setWhitelisting(false);
     // purchase tokens whit user that is not added to the whitelist
@@ -230,7 +230,7 @@ describe("SaleContract", function () {
     const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
     await expect(sale.setTimeDates(startDate, endDate))
-    .to.be.rejectedWith("VM Exception while processing transaction: revert Sale is already active");
+    .to.be.rejectedWith("Sale is already active");
   });
 
   it("Should successfully update startTime/endTime of a sale", async function() {
@@ -295,7 +295,7 @@ describe("SaleContract", function () {
     await expect(
       sale.setToken({tokenID: 2, decimals: 3})
     )
-    .to.be.rejectedWith("VM Exception while processing transaction: revert Sale is already active");
+    .to.be.rejectedWith("Sale is already active");
   });
 
   it("Should successfully change sale price", async function() {
@@ -355,7 +355,7 @@ describe("SaleContract", function () {
     await expect(
       sale.updateVestingConfig({startTime: 10,unlockInterval: 60, percentageToMint: 25})
     )
-    .to.be.rejectedWith("VM Exception while processing transaction: revert Sale is already active");
+    .to.be.rejectedWith("Sale is already active");
   });
 
   it("Should revert when trying to update sale price if sale already active", async function() {
@@ -363,7 +363,7 @@ describe("SaleContract", function () {
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
     await expect(sale.setSalePrice(500))
-    .to.be.rejectedWith("VM Exception while processing transaction: revert Sale is already active");
+    .to.be.rejectedWith("Sale is already active");
   });
 
   it("Should revert when non owner trying to update token sale", async function() {
@@ -382,55 +382,55 @@ describe("SaleContract", function () {
     await expect(
       saleContract.setLimits(1, 10)
     ).to.be.rejectedWith(
-      "VM Exception while processing transaction: revert Ownable: caller is not the owner"
+      "caller is not the owner"
     );
 
     await expect(
       saleContract.setWhitelisting(true)
     ).to.be.rejectedWith(
-      "VM Exception while processing transaction: revert Ownable: caller is not the owner"
+      "caller is not the owner"
     );
 
     await expect(
       saleContract.addToWhitelist(signers[5].getAddress())
     ).to.be.rejectedWith(
-      "VM Exception while processing transaction: revert Ownable: caller is not the owner"
+      "caller is not the owner"
     );
 
     await expect(
       saleContract.removeFromWhitelist(signers[5].getAddress())
     ).to.be.rejectedWith(
-      "VM Exception while processing transaction: revert Ownable: caller is not the owner"
+      "caller is not the owner"
     );
 
     await expect(
       saleContract.setTimeDates(startDate, endDate)
     ).to.be.rejectedWith(
-      "VM Exception while processing transaction: revert Ownable: caller is not the owner"
+      "caller is not the owner"
     );
 
     await expect(
       saleContract.setToken({tokenID: 2, decimals: 3})
     ).to.be.rejectedWith(
-      "VM Exception while processing transaction: revert Ownable: caller is not the owner"
+      "aller is not the owner"
     );
 
     await expect(
       saleContract.setSalePrice(10)
     ).to.be.rejectedWith(
-      "VM Exception while processing transaction: revert Ownable: caller is not the owner"
+      "caller is not the owner"
     );
 
     await expect(
       saleContract.updateVestingConfig({startTime: 10,unlockInterval: 60, percentageToMint: 25})
     ).to.be.rejectedWith(
-      "VM Exception while processing transaction: revert Ownable: caller is not the owner"
+      "caller is not the owner"
     );
 
     await expect(
       saleContract.setMetadataURI("http://ipfsLink.com")
     ).to.be.rejectedWith(
-      "VM Exception while processing transaction: revert Ownable: caller is not the owner"
+      "caller is not the owner"
     );
   });
 
@@ -438,7 +438,7 @@ describe("SaleContract", function () {
   it("should successfuly claim user tokens", async function(){
     const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , unlockInterval: day, percentageToMint: 10});
-    signers[0].sendTransaction(
+    await signers[0].sendTransaction(
     {
       to: sale.address,
       value: ethers.utils.parseEther("3")
@@ -453,7 +453,7 @@ describe("SaleContract", function () {
   it("Should revert when vesting didn't started yet", async function(){
     const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now + 2 * day , unlockInterval: day, percentageToMint: 10});
-    signers[0].sendTransaction(
+    await signers[0].sendTransaction(
     {
       to: sale.address,
       value: ethers.utils.parseEther("3")
@@ -462,7 +462,7 @@ describe("SaleContract", function () {
     let userBalance = await sale.getUserTotalTokens(await signers[0].getAddress());
     expect(userBalance.toString()).to.equal("300");
     await expect(sale.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU"))
-    .to.be.rejectedWith("VM Exception while processing transaction: revert Vesting didn't started yet")
+    .to.be.rejectedWith("Vesting didn't started yet")
 });
 
   it("Should revert when no tokens to claim", async function(){
@@ -472,13 +472,13 @@ describe("SaleContract", function () {
     let userBalance = await sale.getUserTotalTokens(await signers[0].getAddress());
     expect(userBalance.toString()).to.equal("0");
     await expect(sale.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU"))
-    .to.be.rejectedWith("VM Exception while processing transaction: revert You have no tokens to claim")
+    .to.be.rejectedWith("You have no tokens to claim")
   });
 
   it("Should succesfully claim user tokens after vesting ended", async function(){
     const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 15 * day , unlockInterval: day, percentageToMint: 10});
-    signers[0].sendTransaction(
+    await signers[0].sendTransaction(
     {
       to: sale.address,
       value: ethers.utils.parseEther("3")
