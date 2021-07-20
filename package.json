@@ -1,9 +1,9 @@
 {
-  "name": "@nodefactoryio/solidity-contracts-starter",
+  "name": "@nodefactoryio/ryu-contracts",
   "version": "0.0.1",
   "private": false,
   "repository": {
-    "url": "git@github.com:NodeFactoryIo/solidity-contracts-starter.git",
+    "url": "git@github.com:NodeFactoryIo/ryu-contracts.git",
     "type": "git"
   },
   "authors": [
