@@ -30,6 +30,7 @@ contract SaleContract is Whitelisted {
 
     event Claim(string statemintReceiver, uint amount, Vesting.Token token);
     event BuyTokens(address user, uint amount);
+    event SaleUpdated();
 
     constructor(
     uint64 _startTime,
@@ -74,6 +75,7 @@ contract SaleContract is Whitelisted {
 
         currentDeposit = currentDeposit.add(msg.value);
         _userDeposits[msg.sender] = userDeposit.add(msg.value);
+
         emit BuyTokens(msg.sender, msg.value);
     }
 
@@ -82,6 +84,8 @@ contract SaleContract is Whitelisted {
     /// @param isWhitelistable if set to true, only privileged(whitelisted) users can buy tokens
     function setWhitelisting(bool isWhitelistable) external onlyOwner {
         whitelist = isWhitelistable;
+
+        emit SaleUpdated();
     }
 
     /// @dev admin user is not alowed to update start and end date when a sale is already active
@@ -91,6 +95,8 @@ contract SaleContract is Whitelisted {
         require(startTime > currentTime(), "Sale is already active");
         startTime = start;
         endTime = end;
+
+        emit SaleUpdated();
     }
 
     /// @param minAmount minimal amount (in wei) of eth for which user can buy the project tokens
@@ -98,6 +104,8 @@ contract SaleContract is Whitelisted {
     function setLimits( uint minAmount, uint maxAmount) external onlyOwner{
         minDepositAmount = minAmount;
         maxDepositAmount = maxAmount;
+
+        emit SaleUpdated();
     }
 
     /// @dev admin user is not allowed to update the token id after a token sale is already active
@@ -105,6 +113,8 @@ contract SaleContract is Whitelisted {
     function setToken(Vesting.Token memory _token) external onlyOwner{
         require(startTime > currentTime(), "Sale is already active");
         token = _token;
+
+        emit SaleUpdated();
     }
 
     /// @dev admin user is not allowed to update the token price after the token sale is already active
@@ -112,6 +122,8 @@ contract SaleContract is Whitelisted {
     function setSalePrice(uint price)external onlyOwner{
         require(startTime > currentTime(), "Sale is already active");
         salePrice = price;
+
+        emit SaleUpdated();
     }
 
     /// @dev admin user is not allowed to update the token id after the token sale is already active
@@ -119,16 +131,22 @@ contract SaleContract is Whitelisted {
     function updateVestingConfig(Vesting.VestingConfig memory vestingOptions) external onlyOwner{
         require(startTime > currentTime(), "Sale is already active");
         vestingConfig = vestingOptions;
+
+        emit SaleUpdated();
     }
 
     /// @param _isFeatured - is this crowdSale featured
     function setFeatured(bool _isFeatured) external onlyOwner {
         isFeatured = _isFeatured;
+
+        emit SaleUpdated();
     }
 
     /// @param _metadataURI - link on IPFS
     function setMetadataURI(string memory _metadataURI) external onlyOwner {
         metadataURI = _metadataURI;
+
+        emit SaleUpdated();
     }
 
     // Read functions
