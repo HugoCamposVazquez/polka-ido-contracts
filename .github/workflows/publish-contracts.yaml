@@ -63,7 +63,7 @@ jobs:
           OPTIMIZER_ENABLED: "true"
 
       - name: Combine deployments
-        run: npx buidler deploy --export-all "./deployments/deployments.json"
+        run: npx hardhat deploy --export-all "./deployments/deployments.json"
 
       - name: Publish to github package registry
         run: yarn publish --ignore-scripts --no-git-tag-version --no-commit-hooks --non-interactive
