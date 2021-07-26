@@ -28,7 +28,6 @@ describe("Sale Factory", function () {
     });
 
   it("Should create new sale contract", async function () {
-
     const date = new Date();
     const startDate = Math.round((date.setDate((date.getDate() -5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
@@ -37,7 +36,9 @@ describe("Sale Factory", function () {
         1000, {tokenID: 1, decimals: 0},  {whitelist: false, isFeatured: true}, {startTime: 7,unlockInterval: 30, percentageToMint: 10}, "http://ipfsLink.com");
 
     const txReceipt = await tx.wait(1);
-    expect(txReceipt.events![1].event).to.equal("CreatedSaleContract");
+
+    expect(txReceipt.events![1].event).to.equal("OwnershipTransferred");
+    expect(txReceipt.events![2].event).to.equal("CreatedSaleContract");
   });
 
   it("Should fail if createSaleContract is called with invalid owner", async function () {
