@@ -33,19 +33,18 @@ contract SaleContract is Whitelisted {
     event SaleUpdated();
 
     constructor(
-    uint64 _startTime,
-    uint64 _endTime,
-    uint _minDepositAmount,
-    uint _maxDepositAmount,
-    uint _totalDeposit,
-    uint _salePrice,
-    uint _totalDepositPerUser,
-    Vesting.Token memory _token,
-    SaleType.Options memory _options,
-    Vesting.VestingConfig memory _vestingConfig,
-    string memory _metadataURI
-    )
-    {
+        uint64 _startTime,
+        uint64 _endTime,
+        uint _minDepositAmount,
+        uint _maxDepositAmount,
+        uint _totalDeposit,
+        uint _salePrice,
+        uint _totalDepositPerUser,
+        Vesting.Token memory _token,
+        SaleType.Options memory _options,
+        Vesting.VestingConfig memory _vestingConfig,
+        string memory _metadataURI
+    ) {
         token = _token;
         startTime = _startTime;
         endTime = _endTime;
@@ -60,9 +59,14 @@ contract SaleContract is Whitelisted {
         metadataURI = _metadataURI;
     }
 
-    /// @dev We are tracking how much eth(in wei) each address has deposited
+    /// @dev fallback function for sending eth directly to the contract
     receive() external payable {
-        // calculate how much ether the sender has already deposit
+        buyTokens();
+    }
+
+    /// @dev tracking how much eth(in wei) each address has deposited
+    function buyTokens() public payable {
+        // calculate how much ether the sender has already deposited
         uint userDeposit = _userDeposits[msg.sender];
         require(msg.value >= minDepositAmount && msg.value <= maxDepositAmount, "Invalid deposit amount");
         require(currentTime() <= endTime && currentTime() >= startTime, "Sale is not active");
@@ -88,7 +92,7 @@ contract SaleContract is Whitelisted {
         emit SaleUpdated();
     }
 
-    /// @dev admin user is not alowed to update start and end date when a sale is already active
+    /// @dev admin user is not allowed to update start and end date when a sale is already active
     /// @param start unix timestamp when the token sale for the project starts
     /// @param end unix timestamp when the token sale for the project ends
     function setTimeDates(uint64 start, uint64 end) external onlyOwner{

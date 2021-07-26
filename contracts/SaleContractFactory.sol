@@ -24,7 +24,6 @@ contract SaleContractFactory is Ownable{
         Vesting.VestingConfig memory vestingConfig,
         string memory _metadataURI
     ) external onlyOwner {
-
         SaleContract s = new SaleContract(
             _startTime,
             _endTime,
@@ -37,7 +36,8 @@ contract SaleContractFactory is Ownable{
             _options,
             vestingConfig,
             _metadataURI
-            );
+        );
+        s.transferOwnership(msg.sender);
 
         emit CreatedSaleContract(address(s), _token, msg.sender);
     }
