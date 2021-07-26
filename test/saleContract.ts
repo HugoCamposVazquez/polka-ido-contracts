@@ -86,7 +86,7 @@ describe("SaleContract", function () {
     ).to.be.rejectedWith("Sale is not active");
   });
 
-  it("Should fail if a sale did not started yet", async function() {
+  it("Should fail if a sale did not start yet", async function() {
     const sale = await deploySaleContract(1, 4, ethers.utils.parseEther("2"), ethers.utils.parseEther("10000"),
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
@@ -127,7 +127,7 @@ describe("SaleContract", function () {
     ).to.be.rejectedWith("Not enough tokens to sell");
   });
 
-  it("Should fail if you reached the token limit", async function() {
+  it("Should fail if token limit reached", async function() {
 
     const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("5"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
@@ -158,7 +158,7 @@ describe("SaleContract", function () {
     ).to.be.rejectedWith("Your address is not whitelisted");
   });
 
-  it("Should successfully buy tokens", async function() {
+  it("Should successfully buy tokens via receive fallback", async function() {
     const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
@@ -166,6 +166,21 @@ describe("SaleContract", function () {
       signers[0].sendTransaction(
       {
         to: sale.address,
+        value: ethers.utils.parseEther("3")
+      })).to.emit(sale, "BuyTokens")
+    .withArgs(await signers[0].getAddress(), ethers.utils.parseEther("3"))
+
+    let userBalance = await sale.getUserTotalTokens(await signers[0].getAddress());
+    expect(userBalance.toString()).to.equal("300");
+  });
+
+  it("Should successfully buy tokens via buyTokens method", async function() {
+    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
+
+    await expect(
+      sale["buyTokens()"](
+      {
         value: ethers.utils.parseEther("3")
       })).to.emit(sale, "BuyTokens")
     .withArgs(await signers[0].getAddress(), ethers.utils.parseEther("3"))
@@ -520,7 +535,3 @@ describe("SaleContract", function () {
     .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 50, [1, 5])
   });
 });
-
-
-
-
