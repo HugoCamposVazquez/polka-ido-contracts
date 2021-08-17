@@ -465,7 +465,7 @@ describe("SaleContract", function () {
     .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 60, [ 1, 5 ])
   });
 
-  it("Should revert when vesting didn't started yet", async function(){
+  it("Should revert when vesting didn't start yet", async function(){
     const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now + 2 * day , unlockInterval: day, percentageToMint: 10});
     await signers[0].sendTransaction(
@@ -477,7 +477,7 @@ describe("SaleContract", function () {
     let userBalance = await sale.getUserTotalTokens(await signers[0].getAddress());
     expect(userBalance.toString()).to.equal("300");
     await expect(sale.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU"))
-    .to.be.rejectedWith("Vesting didn't started yet")
+    .to.be.rejectedWith("No available tokens to claim")
 });
 
   it("Should revert when no tokens to claim", async function(){
@@ -487,7 +487,7 @@ describe("SaleContract", function () {
     let userBalance = await sale.getUserTotalTokens(await signers[0].getAddress());
     expect(userBalance.toString()).to.equal("0");
     await expect(sale.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU"))
-    .to.be.rejectedWith("You have no tokens to claim")
+    .to.be.rejectedWith("No available tokens to claim")
   });
 
   it("Should succesfully claim user tokens after vesting ended", async function(){
@@ -520,7 +520,7 @@ describe("SaleContract", function () {
     .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 300, [1, 5])
   });
 
-  it("Should succesfully claim user tokens when purchased tokens for les than 1 eth", async function(){
+  it("Should succesfully claim user tokens when purchased tokens for less than 1 eth", async function(){
     const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("0"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 15 * day , unlockInterval: day, percentageToMint: 10});
     await signers[0].sendTransaction(
@@ -533,5 +533,33 @@ describe("SaleContract", function () {
     expect(userBalance.toString()).to.equal("50");
     await expect(sale.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")).to.emit(sale, "Claim")
     .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 50, [1, 5])
+  });
+
+  it("Should return user claimable tokens that are available", async function(){
+    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , unlockInterval: day, percentageToMint: 10});
+    await signers[0].sendTransaction(
+    {
+      to: sale.address,
+      value: ethers.utils.parseEther("3")
+    })
+
+    const claimableTokens = await sale.getUserClaimableTokens(await signers[0].getAddress());
+
+    expect(claimableTokens.toString()).to.equal("60");
+  });
+
+  it("Should return 0 claimable tokens if vesting didn't start yet", async function(){
+    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    false, ethers.utils.parseEther("1000"), {startTime: now + 2 * day , unlockInterval: day, percentageToMint: 10});
+    await signers[0].sendTransaction(
+    {
+      to: sale.address,
+      value: ethers.utils.parseEther("3")
+    })
+
+    const claimableTokens = await sale.getUserClaimableTokens(await signers[0].getAddress());
+
+    expect(claimableTokens.toString()).to.equal("0");
   });
 });
