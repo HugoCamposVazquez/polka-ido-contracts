@@ -96,12 +96,6 @@ contract SaleContract is Whitelisted {
 
     // Admin functions
 
-    /// @param amount Amount of funds to withdraw from sale contract
-    /// @param receiver Address to which funds will be transferred
-    function withdrawFunds(uint256 amount, address payable receiver) external onlyOwner {
-
-    }
-
     /// @param isWhitelistable if set to true, only privileged(whitelisted) users can buy tokens
     function setWhitelisting(bool isWhitelistable) external onlyOwner {
         whitelist = isWhitelistable;
