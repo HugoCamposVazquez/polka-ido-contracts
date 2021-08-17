@@ -166,7 +166,7 @@ contract SaleContract is Whitelisted {
 
     // Read functions
 
-    /// @dev return how tokens can user currently claim taking in account vesting
+    /// @dev return how much tokens can user currently claim taking in account vesting
     /// @param user user eth address
     function getUserClaimableTokens(address user) view public returns(uint) {
         if (currentTime() < vestingConfig.startTime) {
