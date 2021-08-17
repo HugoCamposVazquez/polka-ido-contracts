@@ -83,7 +83,24 @@ contract SaleContract is Whitelisted {
         emit BuyTokens(msg.sender, msg.value);
     }
 
+    /// @param statemintReceiver Statemint address where the tokens will be minted
+    function claimVestedTokens(string memory statemintReceiver) external {
+        uint userMintedTokens = tokensMinted[msg.sender];
+        uint tokensToClaim = getUserClaimableTokens(msg.sender);
+
+        require(tokensToClaim > 0, "No available tokens to claim");
+
+        emit Claim(statemintReceiver, tokensToClaim, token);
+        tokensMinted[msg.sender] = userMintedTokens.add(tokensToClaim);
+    }
+
     // Admin functions
+
+    /// @param amount Amount of funds to withdraw from sale contract
+    /// @param receiver Address to which funds will be transferred
+    function withdrawFunds(uint256 amount, address payable receiver) external onlyOwner {
+
+    }
 
     /// @param isWhitelistable if set to true, only privileged(whitelisted) users can buy tokens
     function setWhitelisting(bool isWhitelistable) external onlyOwner {
@@ -155,40 +172,31 @@ contract SaleContract is Whitelisted {
 
     // Read functions
 
+    function getUserClaimableTokens(address user) view public returns(uint) {
+        if (currentTime() < vestingConfig.startTime) {
+            return 0;
+        }
+
+        uint elapsedTime = currentTime().sub(vestingConfig.startTime);
+        uint userTotalTokens = getUserTotalTokens(user);
+        uint userMintedTokens = tokensMinted[user];
+
+        uint userTokensPerInterval = userTotalTokens.mul(vestingConfig.percentageToMint).div(100);
+        uint intervalCount = elapsedTime.div(vestingConfig.unlockInterval);
+        uint userTokensToMintInInterval = userTokensPerInterval.mul(intervalCount);
+
+        if (userTokensToMintInInterval > userTotalTokens) {
+            return userTotalTokens.sub(userMintedTokens);
+        } else {
+            return userTokensToMintInInterval.sub(userMintedTokens);
+        }
+    }
+
     /// @dev dividing user deposit(in wei) by 1 eth because salePrice is number of tokens that user can buy for 1eth
     /// @param user The user eth address
     /// @return How much project token has the user bought
     function getUserTotalTokens(address user) view public returns(uint) {
         return _userDeposits[user].mul(salePrice).div(1 ether);
-    }
-
-    /// @param statemintReceiver Statemint address where the tokens will be minted
-    function claimVestedTokens(string memory statemintReceiver) external {
-        require (currentTime() >= vestingConfig.startTime, "Vesting didn't started yet");
-        uint elapsedTime = currentTime().sub(vestingConfig.startTime);
-        uint userTotalTokens = getUserTotalTokens(msg.sender);
-        uint userMintedTokens = tokensMinted[msg.sender];
-
-        uint tokensPerInterval = userTotalTokens.mul(vestingConfig.percentageToMint).div(100);
-
-        uint intervalCount = elapsedTime.div(vestingConfig.unlockInterval);
-        uint tokensToMintInInterval = tokensPerInterval.mul(intervalCount);
-
-        require(userMintedTokens < tokensToMintInInterval, "You have no tokens to claim");
-
-        // if vesting ended claim all remaining tokens
-        if(tokensToMintInInterval >= userTotalTokens &&
-        userMintedTokens < userTotalTokens) {
-            uint tokensToClaim = userTotalTokens.sub(userMintedTokens);
-            emit Claim(statemintReceiver, tokensToClaim, token);
-            tokensMinted[msg.sender] = userMintedTokens.add(tokensToClaim);
-        }
-        // vesting ongoing, only claim for the interval
-        else if(userMintedTokens < userTotalTokens){
-            uint tokensToClaim = tokensToMintInInterval.sub(userMintedTokens);
-            emit Claim(statemintReceiver, tokensToClaim, token);
-            tokensMinted[msg.sender] = userMintedTokens.add(tokensToClaim);
-        }
     }
 
     function currentTime() public view returns(uint256) {
