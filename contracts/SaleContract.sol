@@ -85,12 +85,12 @@ contract SaleContract is Whitelisted {
 
     /// @param statemintReceiver Statemint address where the tokens will be minted
     function claimVestedTokens(string memory statemintReceiver) external {
-        uint userMintedTokens = tokensMinted[msg.sender];
         uint tokensToClaim = getUserClaimableTokens(msg.sender);
-
         require(tokensToClaim > 0, "No available tokens to claim");
 
         emit Claim(statemintReceiver, tokensToClaim, token);
+
+        uint userMintedTokens = tokensMinted[msg.sender];
         tokensMinted[msg.sender] = userMintedTokens.add(tokensToClaim);
     }
 
