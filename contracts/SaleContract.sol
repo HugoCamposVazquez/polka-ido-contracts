@@ -96,6 +96,14 @@ contract SaleContract is Whitelisted {
 
     // Admin functions
 
+    /// @param receiver Address to which funds are withdrawn
+    /// @param amount Amount of ether to withdraw from contract
+    function withdraw(address payable receiver, uint256 amount) external onlyOwner {
+        require(amount <= address(this).balance, "Amount to withdraw exceeds contract balance");
+
+        receiver.transfer(amount);
+    }
+
     /// @param isWhitelistable if set to true, only privileged(whitelisted) users can buy tokens
     function setWhitelisting(bool isWhitelistable) external onlyOwner {
         whitelist = isWhitelistable;

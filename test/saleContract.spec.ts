@@ -576,4 +576,57 @@ describe("SaleContract", function () {
 
     expect(claimableTokens.toString()).to.equal("300");
   });
+
+  it("Should fail to withdraw ether from contract if not owner", async function(){
+    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , unlockInterval: day, percentageToMint: 10});
+    await signers[0].sendTransaction(
+    {
+      to: sale.address,
+      value: ethers.utils.parseEther("3")
+    })
+
+    const saleContract = (await ethers.getContractAt(
+      "SaleContract",
+      sale.address,
+      signers[1]
+    ));
+
+    await expect(
+      saleContract.withdraw(await signers[7].getAddress(), 100)
+    ).to.be.rejectedWith(
+      "caller is not the owner"
+    );
+  });
+
+  it("Should fail to withdraw more ether than on contract", async function(){
+    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , unlockInterval: day, percentageToMint: 10});
+    await signers[0].sendTransaction(
+    {
+      to: sale.address,
+      value: ethers.utils.parseEther("3")
+    })
+
+    await expect(
+      sale.withdraw(await signers[7].getAddress(), ethers.utils.parseEther("4"))
+    ).to.be.rejectedWith(
+      "Amount to withdraw exceeds contract balance"
+    );
+  });
+
+  it("Should successfully withdraw ether from contract", async function(){
+    const initialReceiverBalance = await signers[7].getBalance();
+    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , unlockInterval: day, percentageToMint: 10});
+    await signers[0].sendTransaction(
+    {
+      to: sale.address,
+      value: ethers.utils.parseEther("3")
+    })
+
+    await sale.withdraw(await signers[7].getAddress(), ethers.utils.parseEther("3"))
+
+    expect((await signers[7].getBalance()).sub(initialReceiverBalance)).to.be.deep.equal(ethers.utils.parseEther("3"));
+  });
 });
