@@ -535,7 +535,7 @@ describe("SaleContract", function () {
     .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 50, [1, 5])
   });
 
-  it("Should return user claimable tokens that are available", async function(){
+  it("Should successfully return user claimable tokens that are available", async function(){
     const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , unlockInterval: day, percentageToMint: 10});
     await signers[0].sendTransaction(
@@ -549,7 +549,7 @@ describe("SaleContract", function () {
     expect(claimableTokens.toString()).to.equal("60");
   });
 
-  it("Should return 0 claimable tokens if vesting didn't start yet", async function(){
+  it("Should successfully return 0 claimable tokens if vesting didn't start yet", async function(){
     const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now + 2 * day , unlockInterval: day, percentageToMint: 10});
     await signers[0].sendTransaction(
@@ -561,5 +561,19 @@ describe("SaleContract", function () {
     const claimableTokens = await sale.getUserClaimableTokens(await signers[0].getAddress());
 
     expect(claimableTokens.toString()).to.equal("0");
+  });
+
+  it("Should successfully return user total tokens if vesting passed", async function(){
+    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    false, ethers.utils.parseEther("1000"), {startTime: now - 12 * day , unlockInterval: day, percentageToMint: 10});
+    await signers[0].sendTransaction(
+    {
+      to: sale.address,
+      value: ethers.utils.parseEther("3")
+    })
+
+    const claimableTokens = await sale.getUserClaimableTokens(await signers[0].getAddress());
+
+    expect(claimableTokens.toString()).to.equal("300");
   });
 });
