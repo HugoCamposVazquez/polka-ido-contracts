@@ -425,7 +425,7 @@ describe("SaleContract", function () {
     );
 
     await expect(
-      saleContract.setToken({tokenID: 2, decimals: 3})
+      saleContract.setToken({tokenID: 2, decimals: 3, walletAddress: "address"})
     ).to.be.rejectedWith(
       "aller is not the owner"
     );
