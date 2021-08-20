@@ -10,7 +10,9 @@ describe("Sale Factory", function () {
     let SaleContractFactory: Deployment;
     let SaleContractFactoryOwner: SaleContractFactory
     let saleFactory: SaleContractFactory
-
+    const day = 86400
+    const now = Math.round(Date.now() / 1000)
+    
     before(async () => {
         signers = await ethers.getSigners();
         ({ SaleContractFactory } = await deployments.fixture());
@@ -33,7 +35,7 @@ describe("Sale Factory", function () {
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
 
     const tx = await SaleContractFactoryOwner.createSaleContract(startDate, endDate, 2, 10, 10000, 100,
-        1000, {tokenID: 1, decimals: 0},  {whitelist: false, isFeatured: true}, {startTime: 7,unlockInterval: 30, percentageToMint: 10}, "http://ipfsLink.com");
+        1000, {tokenID: 1, decimals: 0},  {whitelist: false, isFeatured: true}, {startTime: 7, endTime: now + 10*day}, "http://ipfsLink.com");
 
     const txReceipt = await tx.wait(1);
 
@@ -48,7 +50,7 @@ describe("Sale Factory", function () {
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
 
     await expect(saleFactory.createSaleContract(startDate, endDate, 2, 10, 10000, 100,
-            1000, {tokenID: 1, decimals: 0},  {whitelist: false, isFeatured: true}, {startTime: 7,unlockInterval: 30, percentageToMint: 10}, "http://ipfsLink.com")
+            1000, {tokenID: 1, decimals: 0},  {whitelist: false, isFeatured: true}, {startTime: 7, endTime: now + 10*day}, "http://ipfsLink.com")
       ).to.be.rejectedWith(
         "caller is not the owner"
       );
