@@ -34,7 +34,7 @@ describe("SaleContract", function () {
         totalDeposit,
         100,
         totalDepositPerUser,
-        {tokenID: 1, decimals: 5},
+        {tokenID: 1, decimals: 5, walletAddress: "address"},
         {whitelist, isFeatured: true},
         vesting,
         "http://ipfsLink.com"
@@ -254,7 +254,7 @@ describe("SaleContract", function () {
     const endDate = Math.round((date.setDate((date.getDate() +2)) /1000));
 
     const sale = await SaleContractFactory.deploy(startDate, endDate, 2, 5, ethers.utils.parseEther("10"),
-    100, ethers.utils.parseEther("1000"), {tokenID: 1, decimals: 5}, {whitelist: true, isFeatured: false}, {startTime: 7,unlockInterval: 30, percentageToMint: 10}, "ipfs://link");
+    100, ethers.utils.parseEther("1000"), {tokenID: 1, decimals: 5, walletAddress: "address"}, {whitelist: true, isFeatured: false}, {startTime: 7,unlockInterval: 30, percentageToMint: 10}, "ipfs://link");
 
     let startTimeValue = await sale.startTime()
     startTimeValue = startTimeValue.toNumber()
@@ -297,7 +297,7 @@ describe("SaleContract", function () {
     let token = await sale.token();
     expect(token[0]).to.be.equal(1);
     expect(token[1]).to.be.equal(5);
-    await sale.setToken({tokenID: 2, decimals: 3});
+    await sale.setToken({tokenID: 2, decimals: 3, walletAddress: "address"});
     token = await sale.token();
     expect(token[0]).to.be.equal(2);
     expect(token[1]).to.be.equal(3);
@@ -308,7 +308,7 @@ describe("SaleContract", function () {
     false, ethers.utils.parseEther("1000"), {startTime: now , unlockInterval: 5, percentageToMint: 10});
 
     await expect(
-      sale.setToken({tokenID: 2, decimals: 3})
+      sale.setToken({tokenID: 2, decimals: 3, walletAddress: "address"})
     )
     .to.be.rejectedWith("Sale is already active");
   });
@@ -386,7 +386,7 @@ describe("SaleContract", function () {
     const startDate = Math.round((date.setDate((date.getDate() - 5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() + 10)) /1000));
 
-    const sale = await SaleContractFactory.deploy(startDate, endDate, 2, 5, 10, 100, 1000, {tokenID: 1, decimals: 5}, {whitelist: true, isFeatured: false},
+    const sale = await SaleContractFactory.deploy(startDate, endDate, 2, 5, 10, 100, 1000, {tokenID: 1, decimals: 5, walletAddress: "address"}, {whitelist: true, isFeatured: false},
     {startTime: 7,unlockInterval: 30, percentageToMint: 10}, "ipfs://link");
 
     const saleContract = (await ethers.getContractAt(
@@ -425,7 +425,7 @@ describe("SaleContract", function () {
     );
 
     await expect(
-      saleContract.setToken({tokenID: 2, decimals: 3})
+      saleContract.setToken({tokenID: 2, decimals: 3, walletAddress: "address"})
     ).to.be.rejectedWith(
       "aller is not the owner"
     );
