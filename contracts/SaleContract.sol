@@ -8,6 +8,7 @@ import "./SaleStructs.sol";
 
 contract SaleContract is Whitelisted {
     using SafeMath for uint;
+    using SafeMath for uint32;
 
     uint64 public startTime;
     uint64 public endTime;
@@ -23,7 +24,7 @@ contract SaleContract is Whitelisted {
     string public metadataURI;
 
     // total how much user has claimed
-    mapping (address => uint) private tokensMinted;
+    mapping (address => uint) private tokensClaimed;
     mapping (address => uint) private _userDeposits;
 
     Vesting.VestingConfig public vestingConfig;
@@ -90,8 +91,8 @@ contract SaleContract is Whitelisted {
 
         emit Claim(statemintReceiver, tokensToClaim, token);
 
-        uint userMintedTokens = tokensMinted[msg.sender];
-        tokensMinted[msg.sender] = userMintedTokens.add(tokensToClaim);
+        uint userClaimedTokens = tokensClaimed[msg.sender];
+        tokensClaimed[msg.sender] = userClaimedTokens.add(tokensToClaim);
     }
 
     // Admin functions
@@ -182,18 +183,19 @@ contract SaleContract is Whitelisted {
         }
 
         uint elapsedTime = currentTime().sub(vestingConfig.startTime);
+        uint vestingDuration = vestingConfig.endTime.sub(vestingConfig.startTime);
         uint userTotalTokens = getUserTotalTokens(user);
-        uint userMintedTokens = tokensMinted[user];
+        uint userClaimedTokens = tokensClaimed[user];
 
-        uint userTokensPerInterval = userTotalTokens.mul(vestingConfig.percentageToMint).div(100);
-        uint intervalCount = elapsedTime.div(vestingConfig.unlockInterval);
-        uint userTokensToMintInInterval = userTokensPerInterval.mul(intervalCount);
-
-        if (userTokensToMintInInterval > userTotalTokens) {
-            return userTotalTokens.sub(userMintedTokens);
-        } else {
-            return userTokensToMintInInterval.sub(userMintedTokens);
+        if (elapsedTime > vestingDuration) {
+            return userTotalTokens.sub(userClaimedTokens);
         }
+        // calculate elapsed time percentage (elapsedTime/vestingDuration eg. 2days/10days = 20%)
+        uint percentageToClaim = elapsedTime.mul(100).div(vestingDuration);
+        // 20% of userTotalTokens
+        uint userTokensToClaim = userTotalTokens.mul(percentageToClaim).div(100);
+
+        return userTokensToClaim.sub(userClaimedTokens);
     }
 
     /// @dev dividing user deposit(in wei) by 1 eth because salePrice is number of tokens that user can buy for 1eth
