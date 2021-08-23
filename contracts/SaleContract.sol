@@ -182,14 +182,15 @@ contract SaleContract is Whitelisted {
             return 0;
         }
 
-        uint elapsedTime = currentTime().sub(vestingConfig.startTime);
-        uint vestingDuration = vestingConfig.endTime.sub(vestingConfig.startTime);
         uint userTotalTokens = getUserTotalTokens(user);
         uint userClaimedTokens = tokensClaimed[user];
 
-        if (elapsedTime > vestingDuration) {
+        if (currentTime() > vestingConfig.endTime) {
             return userTotalTokens.sub(userClaimedTokens);
         }
+
+        uint elapsedTime = currentTime().sub(vestingConfig.startTime);
+        uint vestingDuration = vestingConfig.endTime.sub(vestingConfig.startTime);
         // calculate elapsed time percentage (elapsedTime/vestingDuration eg. 2days/10days = 20%)
         uint percentageToClaim = elapsedTime.mul(100).div(vestingDuration);
         // 20% of userTotalTokens
