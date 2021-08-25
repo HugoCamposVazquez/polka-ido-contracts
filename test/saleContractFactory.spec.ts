@@ -35,7 +35,7 @@ describe("Sale Factory", function () {
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
 
     const tx = await SaleContractFactoryOwner.createSaleContract(startDate, endDate, 2, 10, 10000, 100,
-        1000, {tokenID: 1, decimals: 0},  {whitelist: false, isFeatured: true}, {startTime: 7, endTime: now + 10*day}, "http://ipfsLink.com");
+        1000, {tokenID: 1, decimals: 0, walletAddress: "address"},  {whitelist: false, isFeatured: true}, {startTime: 7, endTime: now + 10*day}, "http://ipfsLink.com");
 
     const txReceipt = await tx.wait(1);
 
@@ -50,7 +50,7 @@ describe("Sale Factory", function () {
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
 
     await expect(saleFactory.createSaleContract(startDate, endDate, 2, 10, 10000, 100,
-            1000, {tokenID: 1, decimals: 0},  {whitelist: false, isFeatured: true}, {startTime: 7, endTime: now + 10*day}, "http://ipfsLink.com")
+            1000, {tokenID: 1, decimals: 0, walletAddress: "address"},  {whitelist: false, isFeatured: true}, {startTime: 7, endTime: now + 10*day}, "http://ipfsLink.com")
       ).to.be.rejectedWith(
         "caller is not the owner"
       );
