@@ -8,5 +8,6 @@ library Vesting {
     struct Token {
         uint32 tokenID;
         uint8 decimals;
+        string walletAddress;
     }
 }

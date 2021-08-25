@@ -35,7 +35,7 @@ describe("SaleContract", function () {
         totalDeposit,
         100,
         totalDepositPerUser,
-        {tokenID: 1, decimals: 5},
+        {tokenID: 1, decimals: 5, walletAddress: "address"},
         {whitelist, isFeatured: true},
         vesting,
         "http://ipfsLink.com"
@@ -298,7 +298,7 @@ describe("SaleContract", function () {
     let token = await sale.token();
     expect(token[0]).to.be.equal(1);
     expect(token[1]).to.be.equal(5);
-    await sale.setToken({tokenID: 2, decimals: 3});
+    await sale.setToken({tokenID: 2, decimals: 3, walletAddress: "address"});
     token = await sale.token();
     expect(token[0]).to.be.equal(2);
     expect(token[1]).to.be.equal(3);
@@ -309,7 +309,7 @@ describe("SaleContract", function () {
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
 
     await expect(
-      sale.setToken({tokenID: 2, decimals: 3})
+      sale.setToken({tokenID: 2, decimals: 3, walletAddress: "address"})
     )
     .to.be.rejectedWith("Sale is already active");
   });
@@ -426,7 +426,7 @@ describe("SaleContract", function () {
     );
 
     await expect(
-      saleContract.setToken({tokenID: 2, decimals: 3})
+      saleContract.setToken({tokenID: 2, decimals: 3, walletAddress: "address"})
     ).to.be.rejectedWith(
       "aller is not the owner"
     );
