@@ -255,7 +255,7 @@ describe("SaleContract", function () {
     const endDate = Math.round((date.setDate((date.getDate() +2)) /1000));
 
     const sale = await SaleContractFactory.deploy(startDate, endDate, 2, 5, ethers.utils.parseEther("10"),
-    100, ethers.utils.parseEther("1000"), {tokenID: 1, decimals: 5}, {whitelist: true, isFeatured: false}, {startTime: 7, endTime: now + 10*day}, "ipfs://link");
+    100, ethers.utils.parseEther("1000"), {tokenID: 1, decimals: 5, walletAddress: "address"}, {whitelist: true, isFeatured: false}, {startTime: 7, endTime: now + 10*day}, "ipfs://link");
 
     let startTimeValue = await sale.startTime()
     startTimeValue = startTimeValue.toNumber()
@@ -387,7 +387,7 @@ describe("SaleContract", function () {
     const startDate = Math.round((date.setDate((date.getDate() - 5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() + 10)) /1000));
 
-    const sale = await SaleContractFactory.deploy(startDate, endDate, 2, 5, 10, 100, 1000, {tokenID: 1, decimals: 5}, {whitelist: true, isFeatured: false},
+    const sale = await SaleContractFactory.deploy(startDate, endDate, 2, 5, 10, 100, 1000, {tokenID: 1, decimals: 5, walletAddress: "address"}, {whitelist: true, isFeatured: false},
     {startTime: 7,endTime: now + 10*day}, "ipfs://link");
 
     const saleContract = (await ethers.getContractAt(
