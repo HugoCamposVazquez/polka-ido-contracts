@@ -15,7 +15,7 @@ describe("SaleContract", function () {
   const now = Math.round(Date.now() / 1000)
 
   async function deploySaleContract(
-    start: number, end: number,
+    startDate: number, endDate: number,
     minPurcValue: BigNumber,
     totalDeposit: BigNumber, whitelist: boolean,
     totalDepositPerUser: BigNumber,
@@ -24,9 +24,6 @@ describe("SaleContract", function () {
       endTime: number
     }
     ): Promise<SaleContract> {
-    const date = new Date();
-    let startDate = Math.round((date.setDate((date.getDate() + start)) /1000));
-    const endDate = Math.round((date.setDate((date.getDate() + end)) /1000));
     return await SaleContractFactory.deploy(
         startDate,
         endDate,
@@ -50,7 +47,7 @@ describe("SaleContract", function () {
 
   // NEGATIVE TESTS
   it("Should fail if not enough ether provided", async function() {
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10000"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10000"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
 
     await expect(
@@ -64,7 +61,7 @@ describe("SaleContract", function () {
 
   it("Should fail if too much ether provided", async function() {
 
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10000"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10000"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
     await expect(
       signers[0].sendTransaction(
@@ -76,7 +73,7 @@ describe("SaleContract", function () {
   });
 
   it("Should fail if the token sale ended", async function() {
-    const sale = await deploySaleContract(-5, 4, ethers.utils.parseEther("2"), ethers.utils.parseEther("10000"),
+    const sale = await deploySaleContract(now - 5*day, now - 1*day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10000"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
     await expect(
       signers[0].sendTransaction(
@@ -88,7 +85,7 @@ describe("SaleContract", function () {
   });
 
   it("Should fail if a sale did not start yet", async function() {
-    const sale = await deploySaleContract(1, 4, ethers.utils.parseEther("2"), ethers.utils.parseEther("10000"),
+    const sale = await deploySaleContract(now + 1*day, now + 4*day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10000"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
 
     await expect(
@@ -102,7 +99,7 @@ describe("SaleContract", function () {
 
 
   it("Should fail if all tokens are sold", async function() {
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
 
     // purchase 500 tokens
@@ -130,7 +127,7 @@ describe("SaleContract", function () {
 
   it("Should fail if token limit reached", async function() {
 
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("5"), {startTime: now , endTime: now + 10*day});
     await signers[0].sendTransaction(
     {
@@ -148,7 +145,7 @@ describe("SaleContract", function () {
   });
 
   it("Should fail if user address is not whitelisted", async function() {
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     true, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
     await expect(
       signers[0].sendTransaction(
@@ -160,7 +157,7 @@ describe("SaleContract", function () {
   });
 
   it("Should successfully buy tokens via receive fallback", async function() {
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
 
     await expect(
@@ -176,7 +173,7 @@ describe("SaleContract", function () {
   });
 
   it("Should successfully buy tokens via buyTokens method", async function() {
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
 
     await expect(
@@ -193,7 +190,7 @@ describe("SaleContract", function () {
 
   it("Should successfully buy tokens when user whitelisted", async function() {
 
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     true, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
     // add to the whitelist a user5
     await sale.addToWhitelist(await signers[5].getAddress());
@@ -243,7 +240,7 @@ describe("SaleContract", function () {
     const startDate = Math.round((date.setDate((date.getDate() -5)) /1000));
     const endDate = Math.round((date.setDate((date.getDate() +10)) /1000));
 
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
     await expect(sale.setTimeDates(startDate, endDate))
     .to.be.rejectedWith("Sale is already active");
@@ -277,7 +274,7 @@ describe("SaleContract", function () {
   });
 
   it("Should successfully change min and max sale amount", async function() {
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
     let minSale = await sale.minDepositAmount();
     let maxSale = await sale.maxDepositAmount();
@@ -292,7 +289,7 @@ describe("SaleContract", function () {
   });
 
   it("Should successfully change token address", async function() {
-    const sale = await deploySaleContract(5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now + 5*day, now + 15*day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
 
     let token = await sale.token();
@@ -305,7 +302,7 @@ describe("SaleContract", function () {
   });
 
   it("Should revert when trying to update tokenAddress if sale already active", async function() {
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
 
     await expect(
@@ -315,7 +312,7 @@ describe("SaleContract", function () {
   });
 
   it("Should successfully change sale price", async function() {
-    const sale = await deploySaleContract(5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now + 5*day, now + 15*day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
     let salePrice = await sale.salePrice();
 
@@ -327,7 +324,7 @@ describe("SaleContract", function () {
   });
 
   it("Should successfully change isFeatured option", async function() {
-    const sale = await deploySaleContract(5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now + 5*day, now + 15*day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
     let isFeatured = await sale.isFeatured();
 
@@ -340,7 +337,7 @@ describe("SaleContract", function () {
   });
 
   it("Should successfully change metadataURI", async function() {
-    const sale = await deploySaleContract(5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now + 5*day, now + 15*day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
     let metadataURI = await sale.metadataURI();
 
@@ -354,7 +351,7 @@ describe("SaleContract", function () {
 
 
   it("Should successfully update vesting config", async function() {
-    const sale = await deploySaleContract(5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now + 5*day, now + 15*day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
     let vestingOptions = await sale.vestingConfig();
     expect(vestingOptions).to.be.deep.equal([now, now + 10*day]);
@@ -365,7 +362,7 @@ describe("SaleContract", function () {
   });
 
   it("Should revert when trying to update vesting config if sale already active", async function() {
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
 
     await expect(
@@ -375,7 +372,7 @@ describe("SaleContract", function () {
   });
 
   it("Should revert when trying to update sale price if sale already active", async function() {
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now , endTime: now + 10*day});
 
     await expect(sale.setSalePrice(500))
@@ -449,26 +446,63 @@ describe("SaleContract", function () {
     ).to.be.rejectedWith(
       "caller is not the owner"
     );
+
+    await expect(
+      saleContract.setMinClaimPeriod(10*day)
+    ).to.be.rejectedWith(
+      "caller is not the owner"
+    );
   });
 
   // test claiming tokens
   it("should successfuly claim user tokens", async function(){
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
-    false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , endTime: now + 8*day});
+    const snapshot = await ethers.provider.send("evm_snapshot", [])
+    const sale = await deploySaleContract(now - 5 * day, now + 0.5 * day, ethers.utils.parseEther("0.5"), ethers.utils.parseEther("10"),
+    false, ethers.utils.parseEther("1000"), {startTime: now + 1 * day , endTime: now + 366*day});
     await signers[0].sendTransaction(
     {
       to: sale.address,
-      value: ethers.utils.parseEther("3")
+      value: ethers.utils.parseEther("1")
     })
 
     let userBalance = await sale.getUserTotalTokens(await signers[0].getAddress());
-    expect(userBalance.toString()).to.equal("300");
+    expect(userBalance.toString()).to.equal("100");
+
+    await expect(sale.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU"))
+    .to.be.rejectedWith("No available tokens to claim")
+
+    // claim 10% of tokens
+    await ethers.provider.send("evm_increaseTime", [38*day]);
     await expect(sale.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")).to.emit(sale, "Claim")
-    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 60, [ 1, 5 ])
+    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 10, [ 1, 5 ])
+
+    await sale.setMinClaimPeriod(50*day)
+    // claim succesfully another 10% of tokens
+    await ethers.provider.send("evm_increaseTime", [37*day]);
+    await expect(sale.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU"))
+    .to.be.rejectedWith("No available tokens to claim")
+    await sale.setMinClaimPeriod(1*day)
+    await expect(sale.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")).to.emit(sale, "Claim")
+    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 10, [ 1, 5 ]);
+
+    // claim succesfully another 50% of tokens
+    await ethers.provider.send("evm_increaseTime", [183*day]);
+    await expect(sale.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")).to.emit(sale, "Claim")
+    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 50, [ 1, 5 ]);
+
+    // claim rest of the tokens after the vesting ended
+    await ethers.provider.send("evm_increaseTime", [300*day]);
+    await expect(sale.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU")).to.emit(sale, "Claim")
+    .withArgs("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU", 30, [ 1, 5 ]);
+
+    await expect(sale.claimVestedTokens("13YYqaYvBrJpr3upTqNCbRXS2vsAFR6v7xGK9VSuHBJaqKyU"))
+    .to.be.rejectedWith("No available tokens to claim");
+
+    await ethers.provider.send("evm_revert", [snapshot]);
   });
 
   it("Should revert when vesting didn't start yet", async function(){
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now + 2 * day , endTime: now + 10*day});
     await signers[0].sendTransaction(
     {
@@ -483,7 +517,7 @@ describe("SaleContract", function () {
 });
 
   it("Should revert when no tokens to claim", async function(){
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , endTime: now + 10*day});
 
     let userBalance = await sale.getUserTotalTokens(await signers[0].getAddress());
@@ -493,7 +527,7 @@ describe("SaleContract", function () {
   });
 
   it("Should succesfully claim user tokens after vesting ended", async function(){
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 15 * day , endTime: now - 5*day});
     await signers[0].sendTransaction(
     {
@@ -508,7 +542,7 @@ describe("SaleContract", function () {
   });
 
   it("Should succesfully claim user tokens when purchased tokens for less than 1 eth", async function(){
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("0"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("0"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 15 * day , endTime: now - day});
     await signers[0].sendTransaction(
     {
@@ -523,7 +557,7 @@ describe("SaleContract", function () {
   });
 
   it("Should revert when user has less than 1% tokens to claim", async function(){
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 100, endTime: now + 10*day});
 
     let userBalance = await sale.getUserTotalTokens(await signers[0].getAddress());
@@ -533,7 +567,7 @@ describe("SaleContract", function () {
   });
 
   it("should revert after user has already claimed all his tokens", async function(){
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , endTime: now + 8*day});
     await signers[0].sendTransaction(
     {
@@ -550,7 +584,7 @@ describe("SaleContract", function () {
   });
 
   it("Should successfully return user claimable tokens that are available", async function(){
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , endTime: now + 8*day});
     await signers[0].sendTransaction(
     {
@@ -563,7 +597,7 @@ describe("SaleContract", function () {
   });
 
   it("Should successfully return 0 claimable tokens if vesting didn't start yet", async function(){
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now + 2 * day , endTime: now + 10*day});
     await signers[0].sendTransaction(
     {
@@ -577,7 +611,7 @@ describe("SaleContract", function () {
   });
 
   it("Should successfully return user total tokens if vesting passed", async function(){
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 12 * day , endTime: now - 3*day});
     await signers[0].sendTransaction(
     {
@@ -591,7 +625,7 @@ describe("SaleContract", function () {
   });
 
   it("Should fail to withdraw ether from contract if not owner", async function(){
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , endTime: now + 10*day});
     await signers[0].sendTransaction(
     {
@@ -613,7 +647,7 @@ describe("SaleContract", function () {
   });
 
   it("Should fail to withdraw more ether than on contract", async function(){
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , endTime: now + 10*day});
     await signers[0].sendTransaction(
     {
@@ -630,7 +664,7 @@ describe("SaleContract", function () {
 
   it("Should successfully withdraw ether from contract", async function(){
     const initialReceiverBalance = await signers[7].getBalance();
-    const sale = await deploySaleContract(-5, 10, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, ethers.utils.parseEther("1000"), {startTime: now - 2 * day , endTime: now + 10*day});
     await signers[0].sendTransaction(
     {
