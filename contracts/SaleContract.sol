@@ -187,13 +187,12 @@ contract SaleContract is Whitelisted {
     /// @dev return how much tokens can user currently claim taking in account vesting
     /// @param user user eth address
     function getUserClaimableTokens(address user) view public returns(uint) {
-        if (currentTime() < vestingConfig.startTime || getUserTotalTokens(user) == 0) {
+        uint userTotalTokens = getUserTotalTokens(user);
+        if (currentTime() < vestingConfig.startTime || userTotalTokens == 0) {
             return 0;
         }
 
-        uint userTotalTokens = getUserTotalTokens(user);
         uint userClaimedTokens = tokensClaimed[user];
-
         if (currentTime() > vestingConfig.endTime) {
             return userTotalTokens.sub(userClaimedTokens);
         }
