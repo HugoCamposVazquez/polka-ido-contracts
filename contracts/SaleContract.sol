@@ -8,11 +8,14 @@ import "./SaleStructs.sol";
 
 contract SaleContract is Whitelisted {
     using SafeMath for uint;
+    using SafeMath for uint32;
 
     uint64 public startTime;
     uint64 public endTime;
+    uint64 public minClaimPeriod = 86400;  // 1 day in seconds
     bool public whitelist;
     bool public isFeatured;
+    uint constant precision = 10000000;
     uint public minDepositAmount;
     uint public maxDepositAmount;
     uint public salePrice;
@@ -23,7 +26,7 @@ contract SaleContract is Whitelisted {
     string public metadataURI;
 
     // total how much user has claimed
-    mapping (address => uint) private tokensMinted;
+    mapping (address => uint) private tokensClaimed;
     mapping (address => uint) private _userDeposits;
 
     Vesting.VestingConfig public vestingConfig;
@@ -90,8 +93,8 @@ contract SaleContract is Whitelisted {
 
         emit Claim(statemintReceiver, tokensToClaim, token);
 
-        uint userMintedTokens = tokensMinted[msg.sender];
-        tokensMinted[msg.sender] = userMintedTokens.add(tokensToClaim);
+        uint userClaimedTokens = tokensClaimed[msg.sender];
+        tokensClaimed[msg.sender] = userClaimedTokens.add(tokensToClaim);
     }
 
     // Admin functions
@@ -172,28 +175,45 @@ contract SaleContract is Whitelisted {
         emit SaleUpdated();
     }
 
+        /// @param _minClaimPeriod - is this crowdSale featured
+    function setMinClaimPeriod(uint64 _minClaimPeriod) external onlyOwner {
+        minClaimPeriod = _minClaimPeriod;
+
+        emit SaleUpdated();
+    }
+
     // Read functions
 
     /// @dev return how much tokens can user currently claim taking in account vesting
     /// @param user user eth address
     function getUserClaimableTokens(address user) view public returns(uint) {
-        if (currentTime() < vestingConfig.startTime) {
+        uint userTotalTokens = getUserTotalTokens(user);
+        if (currentTime() < vestingConfig.startTime || userTotalTokens == 0) {
             return 0;
         }
 
-        uint elapsedTime = currentTime().sub(vestingConfig.startTime);
-        uint userTotalTokens = getUserTotalTokens(user);
-        uint userMintedTokens = tokensMinted[user];
-
-        uint userTokensPerInterval = userTotalTokens.mul(vestingConfig.percentageToMint).div(100);
-        uint intervalCount = elapsedTime.div(vestingConfig.unlockInterval);
-        uint userTokensToMintInInterval = userTokensPerInterval.mul(intervalCount);
-
-        if (userTokensToMintInInterval > userTotalTokens) {
-            return userTotalTokens.sub(userMintedTokens);
-        } else {
-            return userTokensToMintInInterval.sub(userMintedTokens);
+        uint userClaimedTokens = tokensClaimed[user];
+        if (currentTime() > vestingConfig.endTime) {
+            return userTotalTokens.sub(userClaimedTokens);
         }
+
+        uint elapsedTime = currentTime().sub(vestingConfig.startTime);
+        uint vestingDuration = vestingConfig.endTime.sub(vestingConfig.startTime);
+
+        // percentage of claimed tokens is the same as the percentage of passed time during the claim action
+        uint lastClaimTimePerc = userClaimedTokens.mul(precision).div(userTotalTokens);
+        uint lastClaimTime = vestingDuration.mul(lastClaimTimePerc).div(precision);
+        uint timePassedFromLastClaim = elapsedTime.sub(lastClaimTime);
+
+        if (timePassedFromLastClaim < minClaimPeriod) {
+            return 0;
+        }
+        // calculate elapsed time percentage (elapsedTime/vestingDuration eg. 2days/10days = 20%)
+        uint percentageToClaim = elapsedTime.mul(precision).div(vestingDuration);
+        // 20% of userTotalTokens
+        uint userTokensToClaim = userTotalTokens.mul(percentageToClaim).div(precision);
+
+        return userTokensToClaim.sub(userClaimedTokens);
     }
 
     /// @dev dividing user deposit(in wei) by 1 eth because salePrice is number of tokens that user can buy for 1eth
