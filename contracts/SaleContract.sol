@@ -12,10 +12,10 @@ contract SaleContract is Whitelisted {
 
     uint64 public startTime;
     uint64 public endTime;
-    uint64 public minClaimPeriod = 86400;
+    uint64 public minClaimPeriod = 86400;  // 1 day in seconds
     bool public whitelist;
     bool public isFeatured;
-    uint precision = 10000000;
+    uint constant precision = 10000000;
     uint public minDepositAmount;
     uint public maxDepositAmount;
     uint public salePrice;
