@@ -1,6 +1,7 @@
 pragma solidity ^0.8.1;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "hardhat/console.sol";
 
 import "./Whitelisted.sol";
 import "./VestingLib.sol";
@@ -12,8 +13,10 @@ contract SaleContract is Whitelisted {
 
     uint64 public startTime;
     uint64 public endTime;
+    uint64 public minClaimPeriod = 86400;
     bool public whitelist;
     bool public isFeatured;
+    uint precision = 10000000;
     uint public minDepositAmount;
     uint public maxDepositAmount;
     uint public salePrice;
@@ -173,12 +176,19 @@ contract SaleContract is Whitelisted {
         emit SaleUpdated();
     }
 
+        /// @param _minClaimPeriod - is this crowdSale featured
+    function setMinClaimPeriod(uint64 _minClaimPeriod) external onlyOwner {
+        minClaimPeriod = _minClaimPeriod;
+
+        emit SaleUpdated();
+    }
+
     // Read functions
 
     /// @dev return how much tokens can user currently claim taking in account vesting
     /// @param user user eth address
     function getUserClaimableTokens(address user) view public returns(uint) {
-        if (currentTime() < vestingConfig.startTime) {
+        if (currentTime() < vestingConfig.startTime || getUserTotalTokens(user) == 0) {
             return 0;
         }
 
@@ -191,11 +201,24 @@ contract SaleContract is Whitelisted {
 
         uint elapsedTime = currentTime().sub(vestingConfig.startTime);
         uint vestingDuration = vestingConfig.endTime.sub(vestingConfig.startTime);
-        // calculate elapsed time percentage (elapsedTime/vestingDuration eg. 2days/10days = 20%)
-        uint percentageToClaim = elapsedTime.mul(100).div(vestingDuration);
-        // 20% of userTotalTokens
-        uint userTokensToClaim = userTotalTokens.mul(percentageToClaim).div(100);
 
+        // percentage of claimed tokens is the same as the percentage of passed time during the claim action
+        uint lastClaimTimePerc = userClaimedTokens.mul(precision).div(userTotalTokens);
+        uint lastClaimTime = vestingDuration.mul(lastClaimTimePerc).div(precision);
+        uint timePassedFromLastClaim = elapsedTime.sub(lastClaimTime);
+        console.log(timePassedFromLastClaim);
+        console.log(minClaimPeriod);
+        console.log(timePassedFromLastClaim < minClaimPeriod);
+        if (timePassedFromLastClaim < minClaimPeriod) {
+            return 0;
+        }
+        // calculate elapsed time percentage (elapsedTime/vestingDuration eg. 2days/10days = 20%)
+        uint percentageToClaim = elapsedTime.mul(precision).div(vestingDuration);
+        // 20% of userTotalTokens
+        uint userTokensToClaim = userTotalTokens.mul(percentageToClaim).div(precision);
+        console.log(percentageToClaim);
+        console.log(userTotalTokens.mul(percentageToClaim));
+        console.log(userTokensToClaim.sub(userClaimedTokens));
         return userTokensToClaim.sub(userClaimedTokens);
     }
 
