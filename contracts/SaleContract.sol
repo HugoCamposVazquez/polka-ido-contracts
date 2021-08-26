@@ -1,7 +1,6 @@
 pragma solidity ^0.8.1;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "hardhat/console.sol";
 
 import "./Whitelisted.sol";
 import "./VestingLib.sol";
@@ -206,9 +205,7 @@ contract SaleContract is Whitelisted {
         uint lastClaimTimePerc = userClaimedTokens.mul(precision).div(userTotalTokens);
         uint lastClaimTime = vestingDuration.mul(lastClaimTimePerc).div(precision);
         uint timePassedFromLastClaim = elapsedTime.sub(lastClaimTime);
-        console.log(timePassedFromLastClaim);
-        console.log(minClaimPeriod);
-        console.log(timePassedFromLastClaim < minClaimPeriod);
+
         if (timePassedFromLastClaim < minClaimPeriod) {
             return 0;
         }
@@ -216,9 +213,7 @@ contract SaleContract is Whitelisted {
         uint percentageToClaim = elapsedTime.mul(precision).div(vestingDuration);
         // 20% of userTotalTokens
         uint userTokensToClaim = userTotalTokens.mul(percentageToClaim).div(precision);
-        console.log(percentageToClaim);
-        console.log(userTotalTokens.mul(percentageToClaim));
-        console.log(userTokensToClaim.sub(userClaimedTokens));
+
         return userTokensToClaim.sub(userClaimedTokens);
     }
 
