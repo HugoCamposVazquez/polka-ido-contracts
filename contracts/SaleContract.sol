@@ -20,7 +20,6 @@ contract SaleContract is Whitelisted {
     uint public maxDepositAmount;
     uint public salePrice;
     uint public totalDeposits;
-    uint public totalDepositPerUser;
     uint public currentDeposit;
     Vesting.Token public token;
     string public metadataURI;
@@ -42,7 +41,6 @@ contract SaleContract is Whitelisted {
         uint _maxDepositAmount,
         uint _totalDeposit,
         uint _salePrice,
-        uint _totalDepositPerUser,
         Vesting.Token memory _token,
         SaleType.Options memory _options,
         Vesting.VestingConfig memory _vestingConfig,
@@ -54,7 +52,6 @@ contract SaleContract is Whitelisted {
         minDepositAmount = _minDepositAmount;
         maxDepositAmount = _maxDepositAmount;
         salePrice = _salePrice;
-        totalDepositPerUser = _totalDepositPerUser;
         whitelist = _options.whitelist;
         totalDeposits = _totalDeposit;
         vestingConfig = _vestingConfig;
@@ -71,10 +68,10 @@ contract SaleContract is Whitelisted {
     function buyTokens() public payable {
         // calculate how much ether the sender has already deposited
         uint userDeposit = _userDeposits[msg.sender];
-        require(msg.value >= minDepositAmount && msg.value <= maxDepositAmount, "Invalid deposit amount");
+        require(msg.value >= minDepositAmount &&
+        userDeposit.add(msg.value) <= maxDepositAmount, "Invalid deposit amount");
         require(currentTime() <= endTime && currentTime() >= startTime, "Sale is not active");
         require(currentDeposit.add(msg.value) <= totalDeposits, "Not enough tokens to sell");
-        require(userDeposit.add(msg.value) <= totalDepositPerUser, "You reached the token limit");
 
         if (whitelist) {
             require(whitelisted[msg.sender] == true, "Your address is not whitelisted");
