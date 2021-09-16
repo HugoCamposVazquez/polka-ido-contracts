@@ -15,9 +15,11 @@ describe("SaleContract", function () {
   const now = Math.round(Date.now() / 1000)
 
   async function deploySaleContract(
-    startDate: number, endDate: number,
+    startDate: number, 
+    endDate: number,
     minPurcValue: BigNumber,
-    totalDeposit: BigNumber, whitelist: boolean,
+    amountToRaise: BigNumber, 
+    whitelist: boolean,
     vesting: {
       startTime: number,
       endTime: number
@@ -28,7 +30,7 @@ describe("SaleContract", function () {
         endDate,
         minPurcValue,
         ethers.utils.parseEther("5"),
-        totalDeposit,
+        amountToRaise,
         100,
         {tokenID: 1, decimals: 5, walletAddress: "address"},
         {whitelist, isFeatured: true},
@@ -359,6 +361,17 @@ describe("SaleContract", function () {
     expect(vestingOptions).to.be.deep.equal([now + 10, now + 20*day]);
   });
 
+  it("Should successfully update amountToRaise", async function() {
+    const sale = await deploySaleContract(now + 5*day, now + 15*day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
+    false, {startTime: now , endTime: now + 10*day});
+    let amountToRaise = await sale.amountToRaise();
+    expect(amountToRaise).to.be.deep.equal(ethers.utils.parseEther("10"));
+
+    await sale.setAmountToRaise(ethers.utils.parseEther("15"));
+    amountToRaise = await sale.amountToRaise();
+    expect(amountToRaise).to.be.deep.equal(ethers.utils.parseEther("15"));
+  });
+
   it("Should revert when trying to update vesting config if sale already active", async function() {
     const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, {startTime: now , endTime: now + 10*day});
@@ -447,6 +460,11 @@ describe("SaleContract", function () {
 
     await expect(
       saleContract.setMinClaimPeriod(10*day)
+    ).to.be.rejectedWith(
+      "caller is not the owner"
+    );
+    await expect(
+      saleContract.setAmountToRaise(ethers.utils.parseEther("15"))
     ).to.be.rejectedWith(
       "caller is not the owner"
     );
