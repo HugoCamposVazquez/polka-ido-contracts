@@ -19,7 +19,7 @@ contract SaleContract is Whitelisted {
     uint public minDepositAmount;
     uint public maxDepositAmount;
     uint public salePrice;
-    uint public amountToRaise;
+    uint public cap;
     uint public currentDeposit;
     Vesting.Token public token;
     string public metadataURI;
@@ -39,7 +39,7 @@ contract SaleContract is Whitelisted {
         uint64 _endTime,
         uint _minDepositAmount,
         uint _maxDepositAmount,
-        uint _amountToRaise,
+        uint _cap,
         uint _salePrice,
         Vesting.Token memory _token,
         SaleType.Options memory _options,
@@ -53,7 +53,7 @@ contract SaleContract is Whitelisted {
         maxDepositAmount = _maxDepositAmount;
         salePrice = _salePrice;
         whitelist = _options.whitelist;
-        amountToRaise = _amountToRaise;
+        cap = _cap;
         vestingConfig = _vestingConfig;
         isFeatured = _options.isFeatured;
         metadataURI = _metadataURI;
@@ -71,7 +71,7 @@ contract SaleContract is Whitelisted {
         require(msg.value >= minDepositAmount &&
         userDeposit.add(msg.value) <= maxDepositAmount, "Invalid deposit amount");
         require(currentTime() <= endTime && currentTime() >= startTime, "Sale is not active");
-        require(currentDeposit.add(msg.value) <= amountToRaise, "Not enough tokens to sell");
+        require(currentDeposit.add(msg.value) <= cap, "Not enough tokens to sell");
 
         if (whitelist) {
             require(whitelisted[msg.sender] == true, "Your address is not whitelisted");
@@ -179,9 +179,9 @@ contract SaleContract is Whitelisted {
         emit SaleUpdated();
     }
 
-    /// @param _amountToRaise - how much eth will this project raise
-    function setAmountToRaise(uint64 _amountToRaise) external onlyOwner {
-    amountToRaise = _amountToRaise;
+    /// @param _cap - how much eth will this project raise
+    function setCap(uint64 _cap) external onlyOwner {
+    cap = _cap;
 
     emit SaleUpdated();
 }

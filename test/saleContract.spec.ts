@@ -18,7 +18,7 @@ describe("SaleContract", function () {
     startDate: number, 
     endDate: number,
     minPurcValue: BigNumber,
-    amountToRaise: BigNumber, 
+    cap: BigNumber, 
     whitelist: boolean,
     vesting: {
       startTime: number,
@@ -30,7 +30,7 @@ describe("SaleContract", function () {
         endDate,
         minPurcValue,
         ethers.utils.parseEther("5"),
-        amountToRaise,
+        cap,
         100,
         {tokenID: 1, decimals: 5, walletAddress: "address"},
         {whitelist, isFeatured: true},
@@ -361,15 +361,15 @@ describe("SaleContract", function () {
     expect(vestingOptions).to.be.deep.equal([now + 10, now + 20*day]);
   });
 
-  it("Should successfully update amountToRaise", async function() {
+  it("Should successfully update cap", async function() {
     const sale = await deploySaleContract(now + 5*day, now + 15*day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     false, {startTime: now , endTime: now + 10*day});
-    let amountToRaise = await sale.amountToRaise();
-    expect(amountToRaise).to.be.deep.equal(ethers.utils.parseEther("10"));
+    let cap = await sale.cap();
+    expect(cap).to.be.deep.equal(ethers.utils.parseEther("10"));
 
-    await sale.setAmountToRaise(ethers.utils.parseEther("15"));
-    amountToRaise = await sale.amountToRaise();
-    expect(amountToRaise).to.be.deep.equal(ethers.utils.parseEther("15"));
+    await sale.setCap(ethers.utils.parseEther("15"));
+    cap = await sale.cap();
+    expect(cap).to.be.deep.equal(ethers.utils.parseEther("15"));
   });
 
   it("Should revert when trying to update vesting config if sale already active", async function() {
@@ -464,7 +464,7 @@ describe("SaleContract", function () {
       "caller is not the owner"
     );
     await expect(
-      saleContract.setAmountToRaise(ethers.utils.parseEther("15"))
+      saleContract.setCap(ethers.utils.parseEther("15"))
     ).to.be.rejectedWith(
       "caller is not the owner"
     );
