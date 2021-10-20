@@ -193,7 +193,7 @@ describe("SaleContract", function () {
     const sale = await deploySaleContract(now - 5 * day, now + 5 * day, ethers.utils.parseEther("2"), ethers.utils.parseEther("10"),
     true, {startTime: now , endTime: now + 10*day});
     // add to the whitelist a user5
-    await sale.addToWhitelist(await signers[5].getAddress());
+    await sale.addToWhitelist([await signers[5].getAddress()]);
     // purchase successfully tokens
     await signers[5].sendTransaction(
     {
@@ -205,7 +205,7 @@ describe("SaleContract", function () {
     expect(userBalance.toString()).to.equal("300");
 
     // remove user5 from the whitelist
-    await sale.removeFromWhitelist(await signers[5].getAddress());
+    await sale.removeFromWhitelist([await signers[5].getAddress()]);
     await expect(
       signers[5].sendTransaction(
         {
@@ -416,13 +416,13 @@ describe("SaleContract", function () {
     );
 
     await expect(
-      saleContract.addToWhitelist(signers[5].getAddress())
+      saleContract.addToWhitelist([signers[5].getAddress()])
     ).to.be.rejectedWith(
       "caller is not the owner"
     );
 
     await expect(
-      saleContract.removeFromWhitelist(signers[5].getAddress())
+      saleContract.removeFromWhitelist([signers[5].getAddress()])
     ).to.be.rejectedWith(
       "caller is not the owner"
     );
