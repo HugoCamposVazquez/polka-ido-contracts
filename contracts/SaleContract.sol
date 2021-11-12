@@ -230,4 +230,10 @@ contract SaleContract is Whitelisted {
     function currentTime() public view returns(uint256) {
         return block.timestamp;
     }
+
+    /// @dev return how much tokens is claimed by account
+    /// @param user user eth address
+    function getUserClaimedTokens(address user) view public returns(uint) {
+        return tokensClaimed[user];
+    }
 }
